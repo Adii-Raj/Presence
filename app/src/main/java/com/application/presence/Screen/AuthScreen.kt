@@ -58,7 +58,7 @@ fun AuthScreen(
             is AuthResponse.Success -> {
                 val IsNewUser = (authState as? AuthResponse.Success)?.isNewUser
                 if(IsNewUser == true){
-                    if(email != returnedGmailId){
+                    if(email != returnedGmailId && returnedGmailId != ""){
                         Toast.makeText(
                             context,
                             "This Device is Locked with: ${returnedGmailId}",
@@ -68,7 +68,7 @@ fun AuthScreen(
                         onAuthSuccess()
                     }
                 }else{
-                    if(email != returnedGmailId){
+                    if(email != returnedGmailId && returnedGmailId != ""){
                         Toast.makeText(
                             context,
                             "This Device is Locked with: ${returnedGmailId}",
