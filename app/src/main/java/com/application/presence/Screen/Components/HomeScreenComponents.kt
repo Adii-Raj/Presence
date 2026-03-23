@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -25,6 +27,7 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Settings
@@ -55,9 +58,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import com.application.presence.data.model.EventDataClass
 
 @Composable
 fun ReusableDrawer(
@@ -75,7 +83,7 @@ fun ReusableDrawer(
                     modifier = Modifier.padding(16.dp),
                     fontWeight = FontWeight.Bold
                 )
-                Divider()
+                HorizontalDivider()
                 NavigationDrawerItem(
                     label = { Text("Home") },
                     selected = true,
@@ -108,7 +116,7 @@ fun ReusableDrawer(
 
 
 @Composable
-fun EventItemCard(eventName: String, onLearnMoreClick: () -> Unit) {
+fun EventItemCard(event: EventDataClass, onKnowMoreClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -116,17 +124,15 @@ fun EventItemCard(eventName: String, onLearnMoreClick: () -> Unit) {
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column {
-            // Placeholder for Event Image
-            Box(
+            AsyncImage(
+                model = event.Event_Image,
+                contentDescription = "Image for ${event.Event_Name}",
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("Image Placeholder", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                // Use this when you have actual images:
-                // Image(painter = painterResource(id = R.drawable.your_image), contentDescription = null, contentScale = ContentScale.Crop)
-            }
+                    .weight(1f)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+            )
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -134,9 +140,14 @@ fun EventItemCard(eventName: String, onLearnMoreClick: () -> Unit) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = eventName, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
-                Button(onClick = onLearnMoreClick) {
-                    Text("Learn More")
+                Text(
+                    text = event.Event_Name,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.weight(1f)
+                )
+                Button(onClick = onKnowMoreClick) {
+                    Text("Know More")
                 }
             }
         }
@@ -279,6 +290,97 @@ fun CenteredBottomNavigation() {
             contentColor = MaterialTheme.colorScheme.onPrimary
         ) {
             Icon(Icons.Default.QrCodeScanner, contentDescription = "Scan QR", modifier = Modifier.size(36.dp))
+        }
+    }
+}
+
+@Composable
+fun EventDetailsSheetContent(event: EventDataClass) {
+    // Using a LazyColumn inside the sheet allows scrolling if the description is very long
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 32.dp) // Padding for navigation bar clearance
+    ) {
+        // 1. Top Image (Full Width)
+        item {
+            AsyncImage(
+                model = event.Event_Image,
+                contentDescription = "Full Image for ${event.Event_Name}",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(220.dp)
+                    .background(Color.DarkGray)
+            )
+        }
+
+        // 2. Event Details Section
+        item {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(text = event.Event_Name, fontSize = 26.sp, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Date & Time Row
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.DateRange, contentDescription = "Date & Time", tint = MaterialTheme.colorScheme.primary)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    val dateStr = event.Event_Date ?: "TBA"
+                    val timeStr = event.Event_Time ?: "TBA"
+                    Text(text = "$dateStr | $timeStr", style = MaterialTheme.typography.bodyLarge)
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Location Row
+                if (event.Event_Location != null) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.LocationOn, contentDescription = "Location", tint = MaterialTheme.colorScheme.primary)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = event.Event_Location, style = MaterialTheme.typography.bodyLarge)
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+                // Description
+                Text(text = "About this event", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = event.Event_Description ?: "No description available.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Organisers
+                if (!event.Event_Organiser.isNullOrEmpty()) {
+                    Text(text = "Organisers", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    event.Event_Organiser.forEach { organiser ->
+                        val name = organiser.name ?: "Unknown"
+                        val phone = organiser.phone ?: ""
+                        Text(text = "• $name $phone", style = MaterialTheme.typography.bodyMedium)
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+
+                // Important Note
+                if (event.Event_Note != null) {
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = "Note: ${event.Event_Note}",
+                            modifier = Modifier.padding(12.dp),
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            fontStyle = FontStyle.Italic
+                        )
+                    }
+                }
+            }
         }
     }
 }

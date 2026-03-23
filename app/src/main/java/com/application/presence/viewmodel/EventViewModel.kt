@@ -11,13 +11,13 @@ import kotlinx.coroutines.launch
 class EventViewModel(
     private val repository: HomeRepository
 ) : ViewModel() {
-    init {
-        getEvent()
-    }
 
     private val _eventState = MutableStateFlow<EventState>(EventState.Loading)
     val eventState: StateFlow<EventState> = _eventState
 
+    init {
+        getEvent()
+    }
     fun getEvent(){
         viewModelScope.launch {
             _eventState.value = EventState.Loading

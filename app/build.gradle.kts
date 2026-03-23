@@ -106,4 +106,7 @@ dependencies {
 
     //Extended Material 3 UI Icon
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
+
+    //Coil Dependency -> To Load image from internet using URL
+    implementation("io.coil-kt:coil-compose:2.6.0")
 }

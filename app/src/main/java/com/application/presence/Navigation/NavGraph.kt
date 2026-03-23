@@ -14,9 +14,12 @@ import com.application.presence.Screen.HomeScreen
 import com.application.presence.Screen.SplashScreen
 import com.application.presence.data.local.DeviceManager
 import com.application.presence.repository.AuthRepository
+import com.application.presence.repository.HomeRepository
 import com.application.presence.repository.LocalUserRepository
 import com.application.presence.viewmodel.AuthViewModel
+import com.application.presence.viewmodel.EventViewModel
 import com.application.presence.viewmodel.Factory.AuthViewModelFactory
+import com.application.presence.viewmodel.Factory.EventViewModelFactory
 import com.application.presence.viewmodel.Factory.SplashViewModelFactory
 import com.application.presence.viewmodel.SplashViewModel
 import kotlinx.serialization.Serializable
@@ -95,7 +98,10 @@ fun NavGraph(){
         }
 
         composable<homeScreen> {
-            HomeScreen()
+            val repository = HomeRepository()
+            val factory = EventViewModelFactory(repository)
+            val eventViewModel: EventViewModel = viewModel(factory = factory)
+            HomeScreen(viewmodel = eventViewModel)
         }
     }
 }
