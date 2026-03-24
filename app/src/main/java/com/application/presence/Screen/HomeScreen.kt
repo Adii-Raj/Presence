@@ -30,7 +30,7 @@ fun HomeScreen(
     viewmodel: EventViewModel,
     onScannerClick:()-> Unit,
     onAddClick:() -> Unit,
-    onEditClick:() -> Unit
+    onManageClick:() -> Unit
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -64,7 +64,7 @@ fun HomeScreen(
                 CenteredBottomNavigation(onScannerClick)
             },
             floatingActionButton = {
-                ExpandableFab(userHasSpecialPermission = userHasSpecialPermission, onAddClick = onAddClick, onManageClick = onEditClick)
+                ExpandableFab(userHasSpecialPermission = userHasSpecialPermission, onAddClick = onAddClick, onManageClick = onManageClick)
             },
             floatingActionButtonPosition = FabPosition.End
         ) { paddingValues ->
@@ -98,9 +98,17 @@ fun HomeScreen(
                                 items(realEvents) { event ->
                                     EventItemCard(
                                         event = event,
+                                        userHasSpecialPermission = userHasSpecialPermission, // Pass it down!
                                         onKnowMoreClick = {
                                             selectedEvent = event
                                             showEventDetails = true
+                                        },
+                                        onEditClick = {
+                                            // TODO: Navigate to Edit Screen for this specific event
+                                            // e.g., navController.navigate("edit_event/${event.id}")
+                                        },
+                                        onQrClick = {
+                                            // TODO: Show a Dialog or navigate to QR generation screen
                                         }
                                     )
                                 }

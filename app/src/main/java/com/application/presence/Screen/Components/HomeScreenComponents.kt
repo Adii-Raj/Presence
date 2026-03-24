@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -28,18 +29,23 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DrawerState
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LargeFloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
@@ -58,6 +64,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontStyle
@@ -116,7 +123,13 @@ fun ReusableDrawer(
 
 
 @Composable
-fun EventItemCard(event: EventDataClass, onKnowMoreClick: () -> Unit) {
+fun EventItemCard(
+    event: EventDataClass,
+    userHasSpecialPermission: Boolean,
+    onKnowMoreClick: () -> Unit,
+    onEditClick: () -> Unit,
+    onQrClick: () -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -124,15 +137,70 @@ fun EventItemCard(event: EventDataClass, onKnowMoreClick: () -> Unit) {
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column {
-            AsyncImage(
-                model = event.Event_Image,
-                contentDescription = "Image for ${event.Event_Name}",
-                contentScale = ContentScale.Crop,
+            // --- THE NEW BOX OVERLAY ---
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f)
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-            )
+                    .weight(1f) // Takes up the remaining space above the bottom row
+            ) {
+                // 1. The Base Image
+                AsyncImage(
+                    model = event.Event_Image,
+                    contentDescription = "Image for ${event.Event_Name}",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                )
+
+                // 2. The Conditional Overlay (Only for special users)
+                if (userHasSpecialPermission) {
+                    // Optional: Add a subtle gradient at the top so the white buttons
+                    // are always visible, even on light images.
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp)
+                            .background(
+                                Brush.verticalGradient(
+                                    colors = listOf(Color.Black.copy(alpha = 0.6f), Color.Transparent)
+                                )
+                            )
+                    )
+
+                    // The Action Buttons (Top Right Corner)
+                    Row(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        // Smaller, solid-color buttons look great on overlays
+                        FilledIconButton(
+                            onClick = onQrClick,
+                            modifier = Modifier.size(36.dp),
+                            colors = IconButtonDefaults.filledIconButtonColors(
+                                containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.9f)
+                            )
+                        ) {
+                            Icon(Icons.Default.QrCode, contentDescription = "Generate QR", modifier = Modifier.size(20.dp))
+                        }
+
+                        FilledIconButton(
+                            onClick = onEditClick,
+                            modifier = Modifier.size(36.dp),
+                            colors = IconButtonDefaults.filledIconButtonColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.9f)
+                            )
+                        ) {
+                            Icon(Icons.Default.Edit, contentDescription = "Edit Event", modifier = Modifier.size(20.dp))
+                        }
+                    }
+                }
+            }
+            // --- END OF BOX OVERLAY ---
+
+            // The Bottom Row (remains exactly the same)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -190,7 +258,7 @@ fun ExpandableFab(
                             modifier = Modifier.padding(end = 12.dp)
                         ) {
                             Text(
-                                text = "Manage Events",
+                                text = "Manage Attendance",
                                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                                 style = MaterialTheme.typography.labelLarge
                             )
@@ -199,7 +267,7 @@ fun ExpandableFab(
                             onClick = { onManageClick() },
                             containerColor = MaterialTheme.colorScheme.secondaryContainer
                         ) {
-                            Icon(Icons.Default.Edit, contentDescription = "Manage")
+                            Icon(Icons.Default.People, contentDescription = "Manage")
                         }
                     }
                 }

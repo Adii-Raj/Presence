@@ -19,3 +19,7 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Ignore missing error-prone annotations (Safe for Android)
+-dontwarn com.google.errorprone.annotations.**
+-dontwarn javax.lang.model.**

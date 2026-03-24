@@ -46,8 +46,15 @@ android {
     }
 
     buildTypes {
-        release {
+        debug {
+            // Keep these false while coding so your app compiles fast!
             isMinifyEnabled = false
+            isShrinkResources = false
+        }
+        release {
+            // The chainsaw! This will shrink the app before you publish.
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
