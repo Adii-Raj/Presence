@@ -1,5 +1,6 @@
 package com.application.presence.Navigation
 
+import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
@@ -10,6 +11,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.application.presence.Screen.AuthDetailScreen
 import com.application.presence.Screen.AuthScreen
+import com.application.presence.Screen.Components.ScannerViewModelFactory
 import com.application.presence.Screen.HomeScreen
 import com.application.presence.Screen.ScannerScreen
 import com.application.presence.Screen.SplashScreen
@@ -110,7 +112,20 @@ fun NavGraph(){
         }
 
         composable<scannerScreen> {
-            val viewmodel: ScannerViewModel = viewModel()
+            val viewmodel: ScannerViewModel = viewModel(
+                factory = ScannerViewModelFactory(
+                    onSubmissionSuccess = {
+                        navController.navigate(homeScreen){
+                            popUpTo(homeScreen){inclusive = false}
+                            Toast.makeText(
+                                context,
+                                "Successfully Submitted Attendance",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                )
+            )
             ScannerScreen(viewmodel)
         }
     }

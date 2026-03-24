@@ -11,13 +11,22 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -26,89 +35,121 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.application.presence.Screen.Components.CameraScanner
+import com.application.presence.Screen.Components.CustomDropdown
 import com.application.presence.Screen.Components.RequestCameraPermission
 import com.application.presence.viewmodel.ScannerViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 fun ScannerScreen(
-    viewModel: ScannerViewModel = viewModel()
+    viewModel: ScannerViewModel
 ){
+    val scannerState by viewModel.scannerState.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    val scannedText = viewModel.scannedText
-    //This is used to run website if URL in the QR
-    LaunchedEffect(scannedText) {
-        if (
-            !scannedText.isEmpty() &&
-            android.util.Patterns.WEB_URL.matcher(scannedText).matches()
-        ){
-            val intent = Intent(
-                Intent.ACTION_VIEW,
-                scannedText.toUri()
-            )
-            context.startActivity(intent)
-            viewModel.restartScanning()
-        }
-    }
+
+    var selectedSem by remember { mutableStateOf("") }
+    var selectedSec by remember { mutableStateOf("") }
+
+    val SemToSec = mapOf(
+        "1st" to listOf("P1", "P2", "C1", "C2"),
+        "2nd" to listOf("P1", "P2", "C1", "C2"),
+        "3rd" to listOf("A", "B", "C", "D", "E"),
+        "4th" to listOf("A", "B", "C", "D", "E"),
+        "5th" to listOf("A", "B", "C", "D", "E"),
+        "6th" to listOf("A", "B", "C", "D", "E"),
+        "7th" to listOf("A", "B", "C", "D", "E"),
+        "8th" to listOf("A", "B", "C", "D", "E"),
+    )
+    val selectedSemList = SemToSec[selectedSem] ?: emptyList()
 
 
+    //Just use to show scanned text value at the bottom of the scanner
     val text = viewModel.scannedText
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        RequestCameraPermission {
-            Box(
-                modifier = Modifier
-                    .size(300.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .border(width = 4.dp, color = Color.Blue, shape = RoundedCornerShape(10.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                if(viewModel.isScanning){
-                    CameraScanner(viewModel)
-                }else{
-                    Button(
-                        onClick = {
-                            viewModel.restartScanning()
-                        },
-                        modifier = Modifier.clip(RoundedCornerShape(8.dp))
+
+        //I don't think so that now I need scannerState
+        when(scannerState){
+            false -> {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .fillMaxSize()
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text("Scan Again")
+                        CustomDropdown(
+                            label = "Semester",
+                            options = SemToSec.keys.toList(),
+                            selectedValue = selectedSem,
+                            onValueChange = {
+                                selectedSem = it
+                                selectedSec = "" // Resets the branch if they change the course
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        CustomDropdown(
+                            label = "Section",
+                            options = selectedSemList,
+                            selectedValue = selectedSec,
+                            onValueChange = {
+                                selectedSec = it
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Button(
+                            onClick = {
+                                viewModel.chnageScannerState(true)
+                            },
+                            enabled = (selectedSem.isNotEmpty() && selectedSec.isNotEmpty())
+                        ) {
+                            Icon(Icons.Default.QrCodeScanner, contentDescription = "Qr Code Scanner Button")
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("Scan")
+                        }
                     }
                 }
             }
-        }
-        Text(
-            text = "Scanned Result: ",
-            fontWeight = FontWeight.Bold
-        )
-        Text(text = text)
-
-        //Copy to clipboard button
-        if(scannedText.isNotBlank()){
-            Spacer(Modifier.height(8.dp))
-            Button(onClick = {
-                val clipboard = context.getSystemService(
-                    Context.CLIPBOARD_SERVICE
-                )as ClipboardManager
-
-                val clip = ClipData.newPlainText(
-                    "Qr Code: ",
-                    scannedText
+            true -> {
+                RequestCameraPermission {
+                    Box(
+                        modifier = Modifier
+                            .size(370.dp)
+                            .clip(RoundedCornerShape(10.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if(viewModel.isScanning){
+                            CameraScanner(viewModel)
+                        }else{
+                            Button(
+                                onClick = {
+                                    viewModel.restartScanning()
+                                },
+                                modifier = Modifier.clip(RoundedCornerShape(8.dp))
+                            ) {
+                                Text("Scan Again")
+                            }
+                        }
+                    }
+                }
+                Text(
+                    text = "Scanned Result: ",
+                    fontWeight = FontWeight.Bold
                 )
-                clipboard.setPrimaryClip(clip)
-
-                Toast.makeText(
-                    context,
-                    "Copied to clipboard",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }) {
-                Text("Copy to Clipboardz")
+                Text(text = text)
             }
+
+
         }
     }
 }
