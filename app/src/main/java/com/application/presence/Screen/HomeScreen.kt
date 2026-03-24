@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
 import com.application.presence.Screen.Components.CenteredBottomNavigation
 import com.application.presence.Screen.Components.EventDetailsSheetContent
 import com.application.presence.Screen.Components.EventItemCard
@@ -27,7 +28,9 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomeScreen(
     viewmodel: EventViewModel,
-    onScannerClick:()-> Unit
+    onScannerClick:()-> Unit,
+    onAddClick:() -> Unit,
+    onEditClick:() -> Unit
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -61,7 +64,7 @@ fun HomeScreen(
                 CenteredBottomNavigation(onScannerClick)
             },
             floatingActionButton = {
-                ExpandableFab(userHasSpecialPermission = userHasSpecialPermission)
+                ExpandableFab(userHasSpecialPermission = userHasSpecialPermission, onAddClick = onAddClick, onManageClick = onEditClick)
             },
             floatingActionButtonPosition = FabPosition.End
         ) { paddingValues ->
@@ -77,12 +80,17 @@ fun HomeScreen(
                             onRefresh = {
                                 viewmodel.getEvent(isRefresh = true)
                             },
-                            modifier = Modifier.padding(paddingValues)
+                            // modifier = Modifier.padding(paddingValues)
                         ) {
                             LazyColumn(
                                 modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(horizontal = 16.dp),
+                                    .fillMaxSize(),
+                                contentPadding = PaddingValues(
+                                    top = paddingValues.calculateTopPadding() + 8.dp, // Clears the TopAppBar
+                                    bottom = paddingValues.calculateBottomPadding() + 24.dp, // Pushes the last item up past your floating bar
+                                    start = 16.dp,
+                                    end = 16.dp
+                                ),
                                 verticalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
                                 item { Spacer(modifier = Modifier.height(8.dp)) }

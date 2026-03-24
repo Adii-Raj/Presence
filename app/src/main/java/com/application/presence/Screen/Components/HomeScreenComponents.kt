@@ -155,7 +155,11 @@ fun EventItemCard(event: EventDataClass, onKnowMoreClick: () -> Unit) {
 }
 
 @Composable
-fun ExpandableFab(userHasSpecialPermission: Boolean) {
+fun ExpandableFab(
+    userHasSpecialPermission: Boolean,
+    onAddClick:() -> Unit,
+    onManageClick:() -> Unit
+) {
     var expanded by remember { mutableStateOf(false) }
     // Animates the + icon turning into an x
     val rotation by animateFloatAsState(targetValue = if (expanded) 45f else 0f, label = "fab_rotation")
@@ -192,7 +196,7 @@ fun ExpandableFab(userHasSpecialPermission: Boolean) {
                             )
                         }
                         SmallFloatingActionButton(
-                            onClick = { /* TODO: Navigate to Manage */ expanded = false },
+                            onClick = { onManageClick() },
                             containerColor = MaterialTheme.colorScheme.secondaryContainer
                         ) {
                             Icon(Icons.Default.Edit, contentDescription = "Manage")
@@ -216,7 +220,7 @@ fun ExpandableFab(userHasSpecialPermission: Boolean) {
                         )
                     }
                     SmallFloatingActionButton(
-                        onClick = { /* TODO: Navigate to Add */ expanded = false },
+                        onClick = { onAddClick() },
                         containerColor = MaterialTheme.colorScheme.secondaryContainer
                     ) {
                         Icon(Icons.Default.Add, contentDescription = "Add")

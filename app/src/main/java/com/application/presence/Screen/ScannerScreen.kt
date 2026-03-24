@@ -49,7 +49,6 @@ fun ScannerScreen(
     viewModel: ScannerViewModel
 ){
     val scannerState by viewModel.scannerState.collectAsStateWithLifecycle()
-    val context = LocalContext.current
 
     var selectedSem by remember { mutableStateOf("") }
     var selectedSec by remember { mutableStateOf("") }
@@ -62,7 +61,7 @@ fun ScannerScreen(
         "5th" to listOf("A", "B", "C", "D", "E"),
         "6th" to listOf("A", "B", "C", "D", "E"),
         "7th" to listOf("A", "B", "C", "D", "E"),
-        "8th" to listOf("A", "B", "C", "D", "E"),
+        "8th" to listOf("A", "B", "C", "D", "E")
     )
     val selectedSemList = SemToSec[selectedSem] ?: emptyList()
 
@@ -124,7 +123,7 @@ fun ScannerScreen(
                 RequestCameraPermission {
                     Box(
                         modifier = Modifier
-                            .size(370.dp)
+                            .size(350.dp)
                             .clip(RoundedCornerShape(10.dp)),
                         contentAlignment = Alignment.Center
                     ) {
@@ -148,8 +147,6 @@ fun ScannerScreen(
                 )
                 Text(text = text)
             }
-
-
         }
     }
 }

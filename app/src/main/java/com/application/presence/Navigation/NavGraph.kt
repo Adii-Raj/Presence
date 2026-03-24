@@ -9,6 +9,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.application.presence.Screen.AddEventScreenUI
 import com.application.presence.Screen.AuthDetailScreen
 import com.application.presence.Screen.AuthScreen
 import com.application.presence.Screen.Components.ScannerViewModelFactory
@@ -107,7 +108,9 @@ fun NavGraph(){
             val eventViewModel: EventViewModel = viewModel(factory = factory)
             HomeScreen(
                 viewmodel = eventViewModel,
-                onScannerClick = {navController.navigate(scannerScreen)}
+                onScannerClick = {navController.navigate(scannerScreen)},
+                {navController.navigate(addEventScreen)},
+                {}
                 )
         }
 
@@ -128,6 +131,10 @@ fun NavGraph(){
             )
             ScannerScreen(viewmodel)
         }
+
+        composable<addEventScreen> {
+            AddEventScreenUI({navController.navigate((homeScreen))})
+        }
     }
 }
 
@@ -146,3 +153,6 @@ object homeScreen
 
 @Serializable
 object scannerScreen
+
+@Serializable
+object addEventScreen
