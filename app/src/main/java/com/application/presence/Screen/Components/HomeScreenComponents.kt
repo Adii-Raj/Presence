@@ -241,14 +241,15 @@ fun ExpandableFab(userHasSpecialPermission: Boolean) {
 
 
 @Composable
-fun CenteredBottomNavigation() {
+fun CenteredBottomNavigation(
+    onScannerClick:()-> Unit
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 24.dp),
         contentAlignment = Alignment.BottomCenter
     ) {
-        // The Floating Pill Background (Slightly larger now)
         Surface(
             shape = CircleShape,
             color = MaterialTheme.colorScheme.surfaceVariant,
@@ -280,7 +281,7 @@ fun CenteredBottomNavigation() {
 
         // The Lifted Scan QR Button (Bigger and perfectly centered)
         FloatingActionButton(
-            onClick = { /* TODO: Scan QR Logic */ },
+            onClick = { onScannerClick() },
             shape = CircleShape,
             modifier = Modifier
                 .align(Alignment.BottomCenter)

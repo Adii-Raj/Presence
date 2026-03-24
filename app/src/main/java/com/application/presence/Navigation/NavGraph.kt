@@ -11,6 +11,7 @@ import androidx.navigation.compose.rememberNavController
 import com.application.presence.Screen.AuthDetailScreen
 import com.application.presence.Screen.AuthScreen
 import com.application.presence.Screen.HomeScreen
+import com.application.presence.Screen.ScannerScreen
 import com.application.presence.Screen.SplashScreen
 import com.application.presence.data.local.DeviceManager
 import com.application.presence.repository.AuthRepository
@@ -21,6 +22,7 @@ import com.application.presence.viewmodel.EventViewModel
 import com.application.presence.viewmodel.Factory.AuthViewModelFactory
 import com.application.presence.viewmodel.Factory.EventViewModelFactory
 import com.application.presence.viewmodel.Factory.SplashViewModelFactory
+import com.application.presence.viewmodel.ScannerViewModel
 import com.application.presence.viewmodel.SplashViewModel
 import kotlinx.serialization.Serializable
 
@@ -101,7 +103,15 @@ fun NavGraph(){
             val repository = HomeRepository()
             val factory = EventViewModelFactory(repository)
             val eventViewModel: EventViewModel = viewModel(factory = factory)
-            HomeScreen(viewmodel = eventViewModel)
+            HomeScreen(
+                viewmodel = eventViewModel,
+                onScannerClick = {navController.navigate(scannerScreen)}
+                )
+        }
+
+        composable<scannerScreen> {
+            val viewmodel: ScannerViewModel = viewModel()
+            ScannerScreen(viewmodel)
         }
     }
 }
@@ -118,3 +128,6 @@ object authdetail
 
 @Serializable
 object homeScreen
+
+@Serializable
+object scannerScreen

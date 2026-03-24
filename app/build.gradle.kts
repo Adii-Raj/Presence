@@ -101,7 +101,9 @@ dependencies {
     //Datastore
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 
+    //Navigation Dependency
     implementation(libs.navigation.compose)
+    //Serializable Dependency
     implementation(libs.kotlinx.serialization.json)
 
     //Extended Material 3 UI Icon
@@ -109,4 +111,13 @@ dependencies {
 
     //Coil Dependency -> To Load image from internet using URL
     implementation("io.coil-kt:coil-compose:2.6.0")
+
+    // CameraX Dependency
+    implementation("androidx.camera:camera-core:1.5.0")
+    implementation("androidx.camera:camera-camera2:1.5.0")
+    implementation("androidx.camera:camera-lifecycle:1.5.0")
+    implementation("androidx.camera:camera-view:1.5.0")
+// ML Kit Barcode Scanner
+    implementation("com.google.mlkit:barcode-scanning:17.3.0")
+
 }

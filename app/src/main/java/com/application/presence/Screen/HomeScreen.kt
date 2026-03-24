@@ -9,21 +9,16 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.Lifecycle
 import com.application.presence.Screen.Components.CenteredBottomNavigation
 import com.application.presence.Screen.Components.EventDetailsSheetContent
 import com.application.presence.Screen.Components.EventItemCard
 import com.application.presence.Screen.Components.ExpandableFab
 import com.application.presence.Screen.Components.ReusableDrawer
 import com.application.presence.data.model.EventDataClass
-import com.application.presence.data.model.Organiser
 import com.application.presence.data.state.EventState
 import com.application.presence.viewmodel.EventViewModel
 import kotlinx.coroutines.launch
@@ -31,7 +26,8 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    viewmodel: EventViewModel
+    viewmodel: EventViewModel,
+    onScannerClick:()-> Unit
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -61,9 +57,8 @@ fun HomeScreen(
                     }
                 )
             },
-            // The custom bottom bar replaces the standard Scaffold bottomBar
             bottomBar = {
-                CenteredBottomNavigation()
+                CenteredBottomNavigation(onScannerClick)
             },
             floatingActionButton = {
                 ExpandableFab(userHasSpecialPermission = userHasSpecialPermission)
