@@ -126,5 +126,11 @@ dependencies {
     implementation("androidx.camera:camera-view:1.5.0")
 // ML Kit Barcode Scanner
     implementation("com.google.mlkit:barcode-scanning:17.3.0")
+    //Osmodroid Dependency
+    implementation("org.osmdroid:osmdroid-android:6.1.20")
+    // Lifecycle ViewModel
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
+    //Google Play service Location for fast and exact loaction determination
+    implementation("com.google.android.gms:play-services-location:21.2.0")
 
 }

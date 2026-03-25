@@ -30,7 +30,8 @@ fun HomeScreen(
     viewmodel: EventViewModel,
     onScannerClick:()-> Unit,
     onAddClick:() -> Unit,
-    onManageClick:() -> Unit
+    onManageClick:() -> Unit,
+    onQrButtonClicked:() -> Unit
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -108,7 +109,7 @@ fun HomeScreen(
                                             // e.g., navController.navigate("edit_event/${event.id}")
                                         },
                                         onQrClick = {
-                                            // TODO: Show a Dialog or navigate to QR generation screen
+                                            onQrButtonClicked()
                                         }
                                     )
                                 }

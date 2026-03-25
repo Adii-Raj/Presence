@@ -19,6 +19,7 @@ import com.application.presence.Screen.AuthDetailScreen
 import com.application.presence.Screen.AuthScreen
 import com.application.presence.Screen.Components.ScannerViewModelFactory
 import com.application.presence.Screen.HomeScreen
+import com.application.presence.Screen.QrGeneratorScreen
 import com.application.presence.Screen.ScannerScreen
 import com.application.presence.Screen.SplashScreen
 import com.application.presence.data.local.DeviceManager
@@ -117,7 +118,8 @@ fun NavGraph(){
                 viewmodel = eventViewModel,
                 onScannerClick = {navController.navigate(scannerScreen)},
                 {navController.navigate(addEventScreen)},
-                {navController.navigate(attendanceScreen)}
+                {navController.navigate(attendanceScreen)},
+                {navController.navigate(qrGeneratorScreen)}
                 )
         }
 
@@ -188,6 +190,10 @@ fun NavGraph(){
                 }
             )
         }
+
+        composable<qrGeneratorScreen> {
+            QrGeneratorScreen()
+        }
     }
 }
 
@@ -212,3 +218,6 @@ object addEventScreen
 
 @Serializable
 object attendanceScreen
+
+@Serializable
+object qrGeneratorScreen
