@@ -44,10 +44,6 @@ fun QrGeneratorScreen(viewModel: QrGeneratorViewModel = viewModel()) {
                     // Updates the slider state when the user drags it
                     attendanceRadius = newRadius
                 },
-                onRequestCurrentLocation = { onSuccess, onError ->
-                    // Calls the ViewModel's GPS function when the floating button is clicked
-                    viewModel.fetchDeviceLocation(onSuccess, onError)
-                },
                 onSaveClicked = {
                     // 1. Save the final data to the ViewModel
                     if (tempPinnedLocation != null) {

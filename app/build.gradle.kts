@@ -132,5 +132,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
     //Google Play service Location for fast and exact loaction determination
     implementation("com.google.android.gms:play-services-location:21.2.0")
+    //Zxing Dependency which helps generate QR
+    implementation("com.google.zxing:core:3.5.3")
 
 }

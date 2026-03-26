@@ -6,7 +6,9 @@ import android.preference.PreferenceManager
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MyLocation
@@ -15,6 +17,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -23,12 +26,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.application.presence.data.local.FastMyLocationProvider
+import com.application.presence.viewmodel.QrGeneratorViewModel
 import org.osmdroid.api.IMapController
 import org.osmdroid.config.Configuration
 import org.osmdroid.events.MapEventsReceiver
@@ -47,8 +53,7 @@ import java.io.File
 fun OfflineCampusMap(
     zipMapFile: File,
     pinnedLocation: GeoPoint?,
-    onLocationPinned: (GeoPoint) -> Unit,
-    onRequestCurrentLocation: (onSuccess: (GeoPoint) -> Unit, onError: (String) -> Unit) -> Unit
+    onLocationPinned: (GeoPoint) -> Unit
 ) {
     val context = LocalContext.current
     var mapController by remember { mutableStateOf<IMapController?>(null) }
@@ -96,11 +101,6 @@ fun OfflineCampusMap(
                         setTileSource(XYTileSource("CampusTiles", 15, 19, 256, ".png", arrayOf()))
                     }
 
-                    val myLocation = MyLocationNewOverlay(FastMyLocationProvider(ctx), this).apply {
-                        enableMyLocation()
-                    }
-                    locationOverlay = myLocation
-                    overlays.add(myLocation)
 
                     val mapEventsReceiver = object : MapEventsReceiver {
                         override fun singleTapConfirmedHelper(p: GeoPoint?): Boolean {
@@ -115,8 +115,8 @@ fun OfflineCampusMap(
                     maxZoomLevel = 19.0
                     setScrollableAreaLimitDouble(BoundingBox(31.357338, 75.466139, 31.348992, 75.449671))
 
-                    controller.setZoom(17.5)
-                    controller.setCenter(GeoPoint(31.353371, 75.454005))
+                    controller.setZoom(18.5)
+                    controller.setCenter(GeoPoint(31.353362, 75.458683))
                 }
             },
             update = { view ->
@@ -139,24 +139,6 @@ fun OfflineCampusMap(
                 }
             }
         )
-
-        FloatingActionButton(
-            onClick = {
-                // UI simply asks ViewModel for data, handles success/error via callbacks
-                onRequestCurrentLocation(
-                    /* onSuccess */ { userPoint ->
-                        mapController?.animateTo(userPoint)
-                        mapController?.setZoom(18.5)
-                    },
-                    /* onError */ { errorMessage ->
-                        Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
-                    }
-                )
-            },
-            modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)
-        ) {
-            Icon(Icons.Default.MyLocation, contentDescription = "Center on my location")
-        }
     }
 }
 
@@ -168,19 +150,33 @@ fun LocationPickerUi(
     onLocationTapped: (GeoPoint) -> Unit,
     radius: Float,
     onRadiusChanged: (Float) -> Unit,
-    onRequestCurrentLocation: (onSuccess: (GeoPoint) -> Unit, onError: (String) -> Unit) -> Unit,
     onSaveClicked: () -> Unit
 ) {
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
 
         // 1. The Map (Takes up the top portion of the screen)
-        Box(modifier = Modifier.weight(1f)) {
-            OfflineCampusMap(
-                zipMapFile = zipMapFile,
-                pinnedLocation = tempPinnedLocation,
-                onLocationPinned = onLocationTapped,
-                onRequestCurrentLocation = onRequestCurrentLocation
-            )
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("Choose your event hosting Location")
+                OfflineCampusMap(
+                    zipMapFile = zipMapFile,
+                    pinnedLocation = tempPinnedLocation,
+                    onLocationPinned = onLocationTapped
+                )
+            }
         }
 
         // 2. The Control Panel (Bottom portion)
@@ -213,6 +209,9 @@ fun LocationPickerUi(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                //This two are just Temporary
+                val text by remember { mutableStateOf("Event name with details") }
+                val viewmodel: QrGeneratorViewModel= viewModel()
                 // The Save Button (Disabled until the user actually drops a pin!)
                 Button(
                     onClick = onSaveClicked,
@@ -223,6 +222,8 @@ fun LocationPickerUi(
                         Text("Tap the map to drop a pin")
                     } else {
                         Text("Save Location & Generate QR")
+                        viewmodel.generateQr(text)
+
                     }
                 }
             }
@@ -245,10 +246,7 @@ fun QrGeneratorUi(onResetClicked: () -> Unit) {
                 shape = MaterialTheme.shapes.medium
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Text(
-                        text = "[ QR Code Generator ]",
-                        style = MaterialTheme.typography.titleLarge
-                    )
+                    QrScreen()
                 }
             }
 
@@ -265,6 +263,28 @@ fun QrGeneratorUi(onResetClicked: () -> Unit) {
             OutlinedButton(onClick = onResetClicked) {
                 Text("Pick a new location")
             }
+        }
+    }
+}
+
+
+@Composable
+fun QrScreen(viewModel: QrGeneratorViewModel = viewModel()){
+    var qrBitmap = viewModel.qrBitmap.value
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        qrBitmap?.let{bitmap ->
+            Image(
+                bitmap = bitmap.asImageBitmap(),
+                contentDescription = "QR Code",
+                modifier = Modifier.size(250.dp)
+            )
         }
     }
 }
