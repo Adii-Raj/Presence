@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.application.presence.Screen.Components.CenteredBottomNavigation
 import com.application.presence.Screen.Components.EventDetailsSheetContent
 import com.application.presence.Screen.Components.EventItemCard
@@ -21,13 +22,15 @@ import com.application.presence.Screen.Components.ExpandableFab
 import com.application.presence.Screen.Components.ReusableDrawer
 import com.application.presence.data.model.EventDataClass
 import com.application.presence.data.state.EventState
+import com.application.presence.viewmodel.AuthViewModel
 import com.application.presence.viewmodel.EventViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    viewmodel: EventViewModel,
+    authViewModel: AuthViewModel,
+    eventViewmodel: EventViewModel,
     onScannerClick:()-> Unit,
     onAddClick:() -> Unit,
     onManageClick:() -> Unit,
@@ -40,14 +43,17 @@ fun HomeScreen(
     val userHasSpecialPermission = true
 
 
-    val eventState = viewmodel.eventState.collectAsState().value
-    val isRefreshing by viewmodel.isRefreshing.collectAsState()
+    val eventState = eventViewmodel.eventState.collectAsStateWithLifecycle().value
+    val isRefreshing by eventViewmodel.isRefreshing.collectAsState()
+
+    val profile = authViewModel.profile.collectAsStateWithLifecycle()
+    val firstName = profile.value?.name?.split(" ")?.getOrNull(0)
 
     ReusableDrawer(drawerState = drawerState) {
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("Hi Aditya!") },
+                    title = { Text("Hi ${firstName}! \uD83D\uDC4B") },
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
                             Icon(Icons.Default.Menu, contentDescription = "Open Menu")
@@ -79,7 +85,7 @@ fun HomeScreen(
                         PullToRefreshBox(
                             isRefreshing = isRefreshing,
                             onRefresh = {
-                                viewmodel.getEvent(isRefresh = true)
+                                eventViewmodel.getEvent(isRefresh = true)
                             },
                             // modifier = Modifier.padding(paddingValues)
                         ) {

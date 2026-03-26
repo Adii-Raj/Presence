@@ -5,7 +5,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 
-class QrGeneratorRepository(private val context: Context) {
+class AddEventRepository(private val context: Context) {
     suspend fun getOfflineMapFile(fileName: String): File = withContext(Dispatchers.IO) {
         val file = File(context.filesDir, fileName)
         if (!file.exists() || file.length() == 0L) {

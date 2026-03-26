@@ -211,8 +211,6 @@ fun LocationPickerUi(
 
                 //This two are just Temporary
                 val text by remember { mutableStateOf("Event name with details") }
-                val viewmodel: QrGeneratorViewModel= viewModel()
-                // The Save Button (Disabled until the user actually drops a pin!)
                 Button(
                     onClick = onSaveClicked,
                     enabled = tempPinnedLocation != null,
@@ -222,7 +220,6 @@ fun LocationPickerUi(
                         Text("Tap the map to drop a pin")
                     } else {
                         Text("Save Location & Generate QR")
-                        viewmodel.generateQr(text)
 
                     }
                 }
@@ -232,7 +229,7 @@ fun LocationPickerUi(
 }
 
 @Composable
-fun QrGeneratorUi(onResetClicked: () -> Unit) {
+fun QrGeneratorUi() {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -257,12 +254,6 @@ fun QrGeneratorUi(onResetClicked: () -> Unit) {
                 style = MaterialTheme.typography.bodyLarge
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // A handy reset button while you are building/testing
-            OutlinedButton(onClick = onResetClicked) {
-                Text("Pick a new location")
-            }
         }
     }
 }

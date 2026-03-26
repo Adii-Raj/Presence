@@ -11,7 +11,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.set
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.application.presence.repository.QrGeneratorRepository
+import com.application.presence.repository.AddEventRepository
 import com.google.android.gms.location.LocationServices
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
@@ -26,28 +26,10 @@ class QrGeneratorViewModel(application: Application) : AndroidViewModel(applicat
     //This holds qr Bitmap
     private val _qrBitmap = mutableStateOf<Bitmap?>(null)
     val qrBitmap = _qrBitmap
-    private val repository = QrGeneratorRepository(application)
-    private val _mapFile = MutableStateFlow<File?>(null)
-    val mapFile: StateFlow<File?> = _mapFile.asStateFlow()
-    // MVVM: ViewModel holds the state of the pinned location
-    private val _pinnedLocation = MutableStateFlow<GeoPoint?>(null)
-    val pinnedLocation: StateFlow<GeoPoint?> = _pinnedLocation.asStateFlow()
+
     init {
-        loadMapFile("CampusTiles.zip")
+        generateQr("EventName took from somewhere IDK")
     }
-
-
-    private fun loadMapFile(fileName: String) {
-        viewModelScope.launch {
-            _mapFile.value = repository.getOfflineMapFile(fileName)
-        }
-    }
-
-    // MVVM: UI sends the click event here
-    fun setPinnedLocation(point: GeoPoint) {
-        _pinnedLocation.value = point
-    }
-
 
     fun generateQr(text:String){
         if(text.isEmpty()) return

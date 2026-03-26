@@ -23,7 +23,7 @@ class AuthViewModel(
     private val repository: AuthRepository,
     private val deviceManager: DeviceManager,
     private val repo : LocalUserRepository,
-    val context: Context
+    private val context: Context
 ) : ViewModel() {
     private val _profile = MutableStateFlow<LocalProfile?>(null)
     val profile:StateFlow<LocalProfile?> = _profile

@@ -111,11 +111,13 @@ fun NavGraph(){
         }
 
         composable<homeScreen> {
+            val authViewModel: AuthViewModel = viewModel(factory = authFactory)
             val repository = HomeRepository()
             val factory = EventViewModelFactory(repository)
             val eventViewModel: EventViewModel = viewModel(factory = factory)
             HomeScreen(
-                viewmodel = eventViewModel,
+                authViewModel = authViewModel,
+                eventViewmodel = eventViewModel,
                 onScannerClick = {navController.navigate(scannerScreen)},
                 {navController.navigate(addEventScreen)},
                 {navController.navigate(attendanceScreen)},
