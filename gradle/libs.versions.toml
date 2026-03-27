@@ -13,6 +13,7 @@ composeNavigation = "2.8.0"
 serialization = "1.6.3"
 material3 = "1.4.0"
 animation = "1.10.5"
+playServicesMaps = "20.0.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -34,6 +35,7 @@ navigation-compose = { module = "androidx.navigation:navigation-compose", versio
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization"}
 androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
 androidx-compose-animation = { group = "androidx.compose.animation", name = "animation", version.ref = "animation" }
+play-services-maps = { group = "com.google.android.gms", name = "play-services-maps", version.ref = "playServicesMaps" }
 
 
 [plugins]
