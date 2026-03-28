@@ -1,11 +1,9 @@
 package com.application.presence.Screen.Components
 
-import android.Manifest
-import android.content.pm.PackageManager
-import android.preference.PreferenceManager
-import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+
+import android.util.Log
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -63,6 +61,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -71,7 +70,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.application.presence.data.model.EventDataClass
 import com.application.presence.data.model.OrganizerInput
 import com.application.presence.viewmodel.AddEventViewModel
 import org.osmdroid.api.IMapController
@@ -304,6 +305,7 @@ fun MapPicker(viewModel: AddEventViewModel = viewModel()){
     // Temporary states to hold the user's choices BEFORE they click save
     var tempPinnedLocation by remember { mutableStateOf<GeoPoint?>(null) }
     var attendanceRadius by remember { mutableFloatStateOf(10f) } // Default 50 meters
+    val pinnedLocatioNRadius = viewModel.pinnedLocationRadius.collectAsStateWithLifecycle()
 
     if (mapFile == null) {
         // Show a loading spinner centered on the screen while the file is prepared
@@ -323,19 +325,17 @@ fun MapPicker(viewModel: AddEventViewModel = viewModel()){
             // Updates the temporary state when the user taps the map
             tempPinnedLocation = point
         },
-        radius = attendanceRadius,
+        radius = pinnedLocatioNRadius.value,
         onRadiusChanged = { newRadius ->
             // Updates the slider state when the user drags it
-            attendanceRadius = newRadius
+            viewModel.updateRadius(newRadius)
         },
         onSaveClicked = {
             // 1. Save the final data to the ViewModel
-            if (tempPinnedLocation != null) {
-                viewModel.setPinnedLocation(tempPinnedLocation!!)
-                // TODO: If you create a setRadius() in your ViewModel, call it here too!
-            }
+            tempPinnedLocation?.let { viewModel.setPinnedLocation(it) }
 
             viewModel.updateLocationStatus(!viewModel.isLocationSaved.value)
+
         }
     )
 }
@@ -343,7 +343,7 @@ fun MapPicker(viewModel: AddEventViewModel = viewModel()){
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailScreen(
-    onSaveClick:() -> Unit
+    onSaveClick:(EventDataClass) -> Unit
 ){
     var eventName by remember { mutableStateOf("") }
     var eventDate by remember { mutableStateOf("") }
@@ -361,6 +361,9 @@ fun DetailScreen(
 
     val datePickerState = rememberDatePickerState()
     val timePickerState = rememberTimePickerState()
+    val viewmodel : AddEventViewModel = viewModel()
+    val pinnedLocation = viewmodel.pinnedLocation.collectAsStateWithLifecycle().value
+    val pinnedLocationRadius = viewmodel.pinnedLocationRadius.collectAsStateWithLifecycle().value.toString()
 
 
     Scaffold(
@@ -397,31 +400,51 @@ fun DetailScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                OutlinedTextField(
-                    value = eventDate,
-                    onValueChange = { },
-                    readOnly = true,
-                    label = { Text("Date") },
-                    modifier = Modifier.weight(1f),
-                    trailingIcon = {
-                        IconButton(onClick = { showDatePicker = true }) {
-                            Icon(Icons.Default.DateRange, contentDescription = "Select Date")
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                ){
+                    OutlinedTextField(
+                        value = eventDate,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Date") },
+                        trailingIcon = {
+                            IconButton(onClick = { showDatePicker = true }) {
+                                Icon(Icons.Default.DateRange, contentDescription = "Select Date")
+                            }
                         }
-                    }
-                )
+                    )
+                    Box(modifier = Modifier
+                        .matchParentSize()
+                        .clickable(onClick = {showDatePicker = true})
+                        .background(color = Color.Transparent)
+                    )
+                }
 
-                OutlinedTextField(
-                    value = eventTime,
-                    onValueChange = { },
-                    readOnly = true,
-                    label = { Text("Time") },
-                    modifier = Modifier.weight(1f),
-                    trailingIcon = {
-                        IconButton(onClick = { showTimePicker = true }) {
-                            Icon(Icons.Default.AccessTime, contentDescription = "Select Time")
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                ){
+                    OutlinedTextField(
+                        value = eventTime,
+                        onValueChange = { },
+                        readOnly = true,
+                        label = { Text("Time") },
+                        trailingIcon = {
+                            IconButton(onClick = { showTimePicker = true }) {
+                                Icon(Icons.Default.AccessTime, contentDescription = "Select Time")
+                            }
                         }
-                    }
-                )
+                    )
+
+                    Box(modifier = Modifier
+                        .matchParentSize()
+                        .clickable(onClick = {showTimePicker = true})
+                        .background(color = Color.Transparent)
+                    )
+                }
+
             }
 
             OutlinedTextField(
@@ -551,7 +574,23 @@ fun DetailScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Button(
-                onClick = onSaveClick, // When you connect the ViewModel, you'll pass the 'organizers' list here!
+                onClick = {
+                    onSaveClick(
+                        EventDataClass(
+                            null,
+                            eventName,
+                            eventDate,
+                            eventTime,
+                            eventLocation,
+                            eventDescription,
+                            organizers,
+                            eventImage,
+                            eventNote,
+                            "${pinnedLocation?.latitude}, ${pinnedLocation?.longitude}",
+                            pinnedLocationRadius.toString()
+                        )
+                    )
+                }, // When you connect the ViewModel, you'll pass the 'organizers' list here!
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),

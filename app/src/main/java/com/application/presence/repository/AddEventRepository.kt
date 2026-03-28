@@ -1,6 +1,9 @@
 package com.application.presence.repository
 
 import android.content.Context
+import com.application.presence.data.SupabaseClientProvider
+import com.application.presence.data.model.EventDataClass
+import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -16,5 +19,13 @@ class AddEventRepository(private val context: Context) {
             }
         }
         return@withContext file
+    }
+
+
+    suspend fun insertEvent(eventDataClass: EventDataClass){
+        val supabase = SupabaseClientProvider.client
+        supabase
+            .from("eventList")
+            .insert(eventDataClass)
     }
 }

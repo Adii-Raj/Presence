@@ -8,6 +8,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.application.presence.data.model.EventDataClass
 import com.application.presence.repository.AddEventRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,7 +17,8 @@ import kotlinx.coroutines.launch
 import org.osmdroid.util.GeoPoint
 import java.io.File
 
-class AddEventViewModel(application: Application): AndroidViewModel(application) {
+class AddEventViewModel(
+    application: Application): AndroidViewModel(application) {
     // We use a simple boolean to toggle the UI for now.
     // Later, you can bind this to your ViewModel state!
     private val _isLocationSaved = MutableStateFlow(false)
@@ -27,6 +29,10 @@ class AddEventViewModel(application: Application): AndroidViewModel(application)
     // MVVM: ViewModel holds the state of the pinned location
     private val _pinnedLocation = MutableStateFlow<GeoPoint?>(null)
     val pinnedLocation: StateFlow<GeoPoint?> = _pinnedLocation.asStateFlow()
+
+    private val _pinnedLocationRadius = MutableStateFlow(45.0f)
+    val pinnedLocationRadius : StateFlow<Float> = _pinnedLocationRadius
+
     init {
         loadMapFile("CampusTiles.zip")
     }
@@ -38,12 +44,21 @@ class AddEventViewModel(application: Application): AndroidViewModel(application)
         }
     }
 
-    // MVVM: UI sends the click event here
     fun setPinnedLocation(point: GeoPoint) {
         _pinnedLocation.value = point
     }
 
+    fun updateRadius(radius: Float){
+        _pinnedLocationRadius.value = radius
+    }
+
     fun updateLocationStatus(result: Boolean){
         _isLocationSaved.value = result
+    }
+
+    fun insertProfile(eventDataClass: EventDataClass){
+        viewModelScope.launch {
+            repository.insertEvent(eventDataClass)
+        }
     }
 }

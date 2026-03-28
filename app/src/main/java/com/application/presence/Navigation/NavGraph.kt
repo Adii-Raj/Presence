@@ -27,6 +27,7 @@ import com.application.presence.data.model.StudentAttendance
 import com.application.presence.repository.AuthRepository
 import com.application.presence.repository.HomeRepository
 import com.application.presence.repository.LocalUserRepository
+import com.application.presence.viewmodel.AddEventViewModel
 import com.application.presence.viewmodel.AttendanceScreenViewModel
 import com.application.presence.viewmodel.AuthViewModel
 import com.application.presence.viewmodel.EventViewModel
@@ -144,7 +145,10 @@ fun NavGraph(){
         }
 
         composable<addEventScreen> {
-            AddEventScreenUI({navController.navigate((homeScreen))})
+            val viewModel: AddEventViewModel = viewModel()
+            AddEventScreenUI(onSaveClick = {event ->
+                viewModel.insertProfile(event)
+            })
         }
 
         composable<attendanceScreen> {

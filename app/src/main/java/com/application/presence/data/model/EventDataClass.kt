@@ -10,13 +10,15 @@ data class EventDataClass(
     val Event_Time:String?,
     val Event_Location:String?,
     val Event_Description:String?,
-    val Event_Organiser: List<Organiser>?,
+    val Event_Organiser: List<OrganizerInput>?,
     val Event_Image:String?,
-    val Event_Note: String?
+    val Event_Note: String?,
+    val coordinates: String,
+    val coordinates_radius: String
 )
 
 @Serializable
-data class Organiser(
-    val name:String?,
-    val phone: String?
+data class OrganizerInput(
+    val name: String = "",
+    val phone: String = ""
 )
