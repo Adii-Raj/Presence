@@ -24,6 +24,8 @@ import com.application.presence.Screen.ScannerScreen
 import com.application.presence.Screen.SplashScreen
 import com.application.presence.data.local.DeviceManager
 import com.application.presence.data.model.StudentAttendance
+import com.application.presence.data.state.EventInsertState
+import com.application.presence.data.state.EventState
 import com.application.presence.repository.AuthRepository
 import com.application.presence.repository.HomeRepository
 import com.application.presence.repository.LocalUserRepository
@@ -148,8 +150,9 @@ fun NavGraph(){
             val viewModel: AddEventViewModel = viewModel()
             AddEventScreenUI(onSaveClick = {event ->
                 viewModel.insertProfile(event)
-                navController.popBackStack()
-            })
+            },
+                onNavigate = { navController.popBackStack()}
+                )
         }
 
         composable<attendanceScreen> {
@@ -197,7 +200,6 @@ fun NavGraph(){
                 }
             )
         }
-
         composable<qrGeneratorScreen> {
             QrGeneratorScreen()
         }

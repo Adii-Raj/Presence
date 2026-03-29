@@ -9,6 +9,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.application.presence.data.model.EventDataClass
+import com.application.presence.data.state.EventInsertState
 import com.application.presence.repository.AddEventRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -56,10 +57,22 @@ class AddEventViewModel(
         _isLocationSaved.value = result
     }
 
+    private val _insertState = MutableStateFlow<EventInsertState>(EventInsertState.Idle)
+    val insertState: StateFlow<EventInsertState> = _insertState
 
     fun insertProfile(eventDataClass: EventDataClass){
         viewModelScope.launch {
-            repository.insertEvent(eventDataClass)
+            _insertState.value = EventInsertState.IsLoading
+            try {
+                repository.insertEvent(eventDataClass)
+                _insertState.value = EventInsertState.IsSuccess
+            }catch (e:Exception){
+                _insertState.value = EventInsertState.Error("Error Occurred: ${e.message}")
+            }
         }
+    }
+
+    fun resetInsertState() {
+        _insertState.value = EventInsertState.Idle
     }
 }

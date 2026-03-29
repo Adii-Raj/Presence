@@ -417,30 +417,34 @@ fun EventDetailsSheetContent(event: EventDataClass) {
 
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
-                // Description
-                Text(text = "About this event", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = event.Event_Description ?: "No description available.",
-                    style = MaterialTheme.typography.bodyMedium
-                )
+                if(!event.Event_Description.isNullOrEmpty()){
+                    Text(text = "About this event", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = event.Event_Description,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
 
+                val validOrganizers = event.Event_Organiser?.filter {
+                    it.name.isNotBlank() || it.phone.isNotBlank()
+                }
                 // Organisers
-                if (!event.Event_Organiser.isNullOrEmpty()) {
+                if (!validOrganizers.isNullOrEmpty()) {
                     Text(text = "Organisers", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
                     Spacer(modifier = Modifier.height(4.dp))
                     event.Event_Organiser.forEach { organiser ->
-                        val name = organiser.name ?: "Unknown"
-                        val phone = organiser.phone ?: ""
+                        val name = organiser.name.trim()
+                        val phone = organiser.phone.trim()
                         Text(text = "• $name $phone", style = MaterialTheme.typography.bodyMedium)
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                 }
 
                 // Important Note
-                if (event.Event_Note != null) {
+                if (!event.Event_Note.isNullOrEmpty()) {
                     Card(
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
                         modifier = Modifier.fillMaxWidth()

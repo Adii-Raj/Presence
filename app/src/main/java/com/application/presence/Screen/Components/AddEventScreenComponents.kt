@@ -74,6 +74,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.application.presence.data.model.EventDataClass
 import com.application.presence.data.model.OrganizerInput
+import com.application.presence.data.state.EventInsertState
 import com.application.presence.viewmodel.AddEventViewModel
 import org.osmdroid.api.IMapController
 import org.osmdroid.config.Configuration
@@ -375,6 +376,56 @@ fun DetailScreen(
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             )
+        },
+        bottomBar = {
+            Surface(
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 8.dp, // Gives a slight shadow so content scrolls "under" it
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Box(modifier = Modifier.padding(16.dp)) { // Padding around the button
+                    val insertState by viewmodel.insertState.collectAsStateWithLifecycle()
+
+                    Button(
+                        onClick = {
+                            onSaveClick(
+                                EventDataClass(
+                                    null,
+                                    eventName.trim(),
+                                    eventDate,
+                                    eventTime,
+                                    eventLocation.trim(),
+                                    eventDescription.trim(),
+                                    organizers,
+                                    eventImage,
+                                    eventNote.trim(),
+                                    "${pinnedLocation?.latitude}, ${pinnedLocation?.longitude}",
+                                    pinnedLocationRadius
+                                )
+                            )
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
+                        shape = RoundedCornerShape(8.dp),
+                        enabled = (insertState != EventInsertState.IsLoading && eventName.isNotEmpty() && eventDate.isNotEmpty() && eventTime.isNotEmpty() && eventLocation.isNotEmpty())
+                    ) {
+                        if (insertState == EventInsertState.IsLoading) {
+                            CircularProgressIndicator(
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.size(24.dp),
+                                strokeWidth = 2.dp
+                            )
+                            Spacer(Modifier.width(12.dp))
+                            Text("Saving...", fontWeight = FontWeight.Bold)
+                        } else {
+                            Icon(Icons.Default.Event, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text("Save Event", fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
         }
     ) { paddingValues ->
         Column(
@@ -570,37 +621,6 @@ fun DetailScreen(
                 minLines = 2,
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Done)
             )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Button(
-                onClick = {
-                    onSaveClick(
-                        EventDataClass(
-                            null,
-                            eventName,
-                            eventDate,
-                            eventTime,
-                            eventLocation,
-                            eventDescription,
-                            organizers,
-                            eventImage,
-                            eventNote,
-                            "${pinnedLocation?.latitude}, ${pinnedLocation?.longitude}",
-                            pinnedLocationRadius
-                        )
-                    )
-                }, // When you connect the ViewModel, you'll pass the 'organizers' list here!
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Icon(Icons.Default.Event, contentDescription = null)
-                Spacer(Modifier.width(8.dp))
-                Text("Save Event", fontWeight = FontWeight.Bold)
-            }
-
             Spacer(modifier = Modifier.height(32.dp))
         }
 
