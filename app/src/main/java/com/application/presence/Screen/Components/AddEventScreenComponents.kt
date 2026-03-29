@@ -354,7 +354,7 @@ fun DetailScreen(
     var eventNote by remember { mutableStateOf("") }
 
     // 2. State for Organizers (Starts with 1 empty organizer)
-    var organizers by remember { mutableStateOf(listOf(OrganizerInput())) }
+    var organizers by remember { mutableStateOf(listOf(OrganizerInput("",""))) }
 
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
@@ -363,7 +363,7 @@ fun DetailScreen(
     val timePickerState = rememberTimePickerState()
     val viewmodel : AddEventViewModel = viewModel()
     val pinnedLocation = viewmodel.pinnedLocation.collectAsStateWithLifecycle().value
-    val pinnedLocationRadius = viewmodel.pinnedLocationRadius.collectAsStateWithLifecycle().value.toString()
+    val pinnedLocationRadius = viewmodel.pinnedLocationRadius.collectAsStateWithLifecycle().value
 
 
     Scaffold(
@@ -587,7 +587,7 @@ fun DetailScreen(
                             eventImage,
                             eventNote,
                             "${pinnedLocation?.latitude}, ${pinnedLocation?.longitude}",
-                            pinnedLocationRadius.toString()
+                            pinnedLocationRadius
                         )
                     )
                 }, // When you connect the ViewModel, you'll pass the 'organizers' list here!

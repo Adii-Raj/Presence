@@ -56,6 +56,7 @@ class AddEventViewModel(
         _isLocationSaved.value = result
     }
 
+
     fun insertProfile(eventDataClass: EventDataClass){
         viewModelScope.launch {
             repository.insertEvent(eventDataClass)

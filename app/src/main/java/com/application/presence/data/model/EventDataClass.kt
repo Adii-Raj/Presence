@@ -13,8 +13,8 @@ data class EventDataClass(
     val Event_Organiser: List<OrganizerInput>?,
     val Event_Image:String?,
     val Event_Note: String?,
-    val coordinates: String,
-    val coordinates_radius: String
+    val coordinates: String? = null,
+    val coordinates_radius: Float? = null
 )
 
 @Serializable

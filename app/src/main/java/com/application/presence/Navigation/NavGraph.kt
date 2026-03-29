@@ -148,6 +148,7 @@ fun NavGraph(){
             val viewModel: AddEventViewModel = viewModel()
             AddEventScreenUI(onSaveClick = {event ->
                 viewModel.insertProfile(event)
+                navController.popBackStack()
             })
         }
 
