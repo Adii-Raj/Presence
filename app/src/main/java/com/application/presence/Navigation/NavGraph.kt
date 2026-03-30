@@ -2,11 +2,17 @@ package com.application.presence.Navigation
 
 import android.app.Application
 import android.widget.Toast
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -14,6 +20,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import com.application.presence.Screen.AddEventScreenUI
 import com.application.presence.Screen.AttendanceScreen
 import com.application.presence.Screen.AuthDetailScreen
@@ -129,7 +136,7 @@ fun NavGraph(){
                 {navController.navigate(attendanceScreen)},
                 {id ->
                     eventViewModel.getUniqueAndSecret(id)
-                    navController.navigate(qrGeneratorScreen)
+                    navController.navigate(qrGeneratorScreen(eventId = id))
                 }
                 )
         }
@@ -206,13 +213,42 @@ fun NavGraph(){
                 }
             )
         }
-        composable<qrGeneratorScreen> {
+        composable<qrGeneratorScreen> { backStackEntry ->
+            // 1. Extract the passed eventId
+            val route = backStackEntry.toRoute<qrGeneratorScreen>()
+            val currentEventId = route.eventId
+
+            // 2. Initialize ViewModels (with the factory fix!)
             val repository = HomeRepository()
             val factory = EventViewModelFactory(application, repository)
             val eventViewModel: EventViewModel = viewModel(factory = factory)
-            val generatorViewModel: QrGeneratorViewModel=viewModel()
+            val generatorViewModel: QrGeneratorViewModel = viewModel()
+
+            // 3. Observe the keys
             val keys by eventViewModel.key.collectAsStateWithLifecycle()
-            QrGeneratorScreen(keys?.secret_key.toString(), keys?.unique_tag.toString(), generatorViewModel)
+
+            // 4. Trigger the Supabase fetch EXACTLY ONCE when this screen opens
+            LaunchedEffect(key1 = currentEventId) {
+                // NOTE: Make sure you have a function in EventViewModel that
+                // launches a coroutine to call repository.getUniqueAndSecret(id)
+                // and updates the _key StateFlow.
+                eventViewModel.getUniqueAndSecret(currentEventId)
+            }
+
+            // 5. Handle the UI States (Loading vs Success)
+            if (keys == null) {
+                // While waiting for Supabase, show a loader instead of crashing or showing empty data
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            } else {
+                // Once data arrives, pass it to your existing UI
+                QrGeneratorScreen(
+                    secretKey = keys?.secret_key ?: "",
+                    uniqueTag = keys?.unique_tag ?: "",
+                    viewModel = generatorViewModel
+                )
+            }
         }
     }
 }
@@ -240,4 +276,4 @@ object addEventScreen
 object attendanceScreen
 
 @Serializable
-object qrGeneratorScreen
+data class qrGeneratorScreen(val eventId: String)

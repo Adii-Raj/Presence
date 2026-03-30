@@ -89,7 +89,7 @@ fun QrGeneratorUi(uiState: QrUiState, viewModel: QrGeneratorViewModel) {
             Spacer(modifier = Modifier.height(32.dp))
 
             Text(
-                text = "Students can now scan this code.",
+                text = "Scan QR to mark Attendance.",
                 style = MaterialTheme.typography.bodyLarge
             )
 

@@ -14,7 +14,6 @@ class HomeRepository {
         val result = supabase.from("eventList")
             .select()
             .decodeList<EventDataClass>()
-        Log.e("Repository", result.toString())
         return result
     }
 
@@ -30,7 +29,6 @@ class HomeRepository {
                 }
             }
             .decodeSingleOrNull<KeysDataClass>()
-        Log.e("getUniqueAndSecret", result.toString())
         return result
     }
 }
