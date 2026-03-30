@@ -34,7 +34,7 @@ fun HomeScreen(
     onScannerClick:()-> Unit,
     onAddClick:() -> Unit,
     onManageClick:() -> Unit,
-    onQrButtonClicked:() -> Unit
+    onQrButtonClicked:(String) -> Unit
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -115,7 +115,7 @@ fun HomeScreen(
                                             // e.g., navController.navigate("edit_event/${event.id}")
                                         },
                                         onQrClick = {
-                                            onQrButtonClicked()
+                                            onQrButtonClicked(event.id!!)
                                         }
                                     )
                                 }

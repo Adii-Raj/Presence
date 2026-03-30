@@ -13,8 +13,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -34,6 +36,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.application.presence.data.local.FastMyLocationProvider
+import com.application.presence.data.model.QrUiState
 import com.application.presence.viewmodel.QrGeneratorViewModel
 import org.osmdroid.api.IMapController
 import org.osmdroid.config.Configuration
@@ -52,13 +55,18 @@ import java.io.File
 
 
 @Composable
-fun QrGeneratorUi() {
+fun QrGeneratorUi(uiState: QrUiState, viewModel: QrGeneratorViewModel) {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            if (uiState.isLoading) {
+                CircularProgressIndicator()
+                return@Column
+            }
 
+            viewModel.generateQr(uiState.qrPayload)
             // Placeholder for your future QR Code Image
             Surface(
                 modifier = Modifier.size(250.dp),
@@ -69,6 +77,14 @@ fun QrGeneratorUi() {
                     QrScreen()
                 }
             }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            LinearProgressIndicator(
+                progress = { uiState.secondsRemaining.toFloat() / 10f }, // Assuming 10 sec step
+                modifier = Modifier.fillMaxWidth(0.6f),
+                color = MaterialTheme.colorScheme.primary,
+            )
 
             Spacer(modifier = Modifier.height(32.dp))
 

@@ -1,5 +1,6 @@
 package com.application.presence.Navigation
 
+import android.app.Application
 import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -36,6 +37,7 @@ import com.application.presence.viewmodel.EventViewModel
 import com.application.presence.viewmodel.Factory.AuthViewModelFactory
 import com.application.presence.viewmodel.Factory.EventViewModelFactory
 import com.application.presence.viewmodel.Factory.SplashViewModelFactory
+import com.application.presence.viewmodel.QrGeneratorViewModel
 import com.application.presence.viewmodel.ScannerViewModel
 import com.application.presence.viewmodel.SplashViewModel
 import kotlinx.serialization.Serializable
@@ -44,6 +46,7 @@ import kotlinx.serialization.Serializable
 fun NavGraph(){
     val navController = rememberNavController()
     val context = LocalContext.current
+    val application = context.applicationContext as Application
 
     val authRepository = remember(context) { AuthRepository(context) }
     val localUserRepository = remember(context) { LocalUserRepository(context) }
@@ -116,7 +119,7 @@ fun NavGraph(){
         composable<homeScreen> {
             val authViewModel: AuthViewModel = viewModel(factory = authFactory)
             val repository = HomeRepository()
-            val factory = EventViewModelFactory(repository)
+            val factory = EventViewModelFactory(application ,repository)
             val eventViewModel: EventViewModel = viewModel(factory = factory)
             HomeScreen(
                 authViewModel = authViewModel,
@@ -124,7 +127,10 @@ fun NavGraph(){
                 onScannerClick = {navController.navigate(scannerScreen)},
                 {navController.navigate(addEventScreen)},
                 {navController.navigate(attendanceScreen)},
-                {navController.navigate(qrGeneratorScreen)}
+                {id ->
+                    eventViewModel.getUniqueAndSecret(id)
+                    navController.navigate(qrGeneratorScreen)
+                }
                 )
         }
 
@@ -201,7 +207,12 @@ fun NavGraph(){
             )
         }
         composable<qrGeneratorScreen> {
-            QrGeneratorScreen()
+            val repository = HomeRepository()
+            val factory = EventViewModelFactory(application, repository)
+            val eventViewModel: EventViewModel = viewModel(factory = factory)
+            val generatorViewModel: QrGeneratorViewModel=viewModel()
+            val keys by eventViewModel.key.collectAsStateWithLifecycle()
+            QrGeneratorScreen(keys?.secret_key.toString(), keys?.unique_tag.toString(), generatorViewModel)
         }
     }
 }

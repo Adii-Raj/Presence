@@ -1,7 +1,10 @@
 package com.application.presence.viewmodel
 
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.application.presence.data.model.KeysDataClass
 import com.application.presence.data.state.EventState
 import com.application.presence.repository.HomeRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -9,8 +12,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class EventViewModel(
+    application: Application,
     private val repository: HomeRepository
-) : ViewModel() {
+) : AndroidViewModel(application) {
 
     private val _eventState = MutableStateFlow<EventState>(EventState.Loading)
     val eventState: StateFlow<EventState> = _eventState
@@ -39,6 +43,15 @@ class EventViewModel(
                 // 2. This guarantees the spinner turns off no matter what!
                 _isRefreshing.value = false
             }
+        }
+    }
+
+    private val _key = MutableStateFlow<KeysDataClass?>(null)
+    val key: StateFlow<KeysDataClass?> =_key
+
+    fun getUniqueAndSecret(id: String){
+        viewModelScope.launch {
+            _key.value = repository.getUniqueAndSecret(id)
         }
     }
 }

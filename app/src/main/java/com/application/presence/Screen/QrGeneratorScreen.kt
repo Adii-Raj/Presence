@@ -9,12 +9,27 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.application.presence.viewmodel.QrGeneratorViewModel
 import org.osmdroid.util.GeoPoint
 import androidx.compose.material3.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.application.presence.Screen.Components.LocationPickerUi
 import com.application.presence.Screen.Components.QrGeneratorUi
 import com.application.presence.Screen.Components.QrScreen
 import java.io.File
 
 @Composable
-fun QrGeneratorScreen() {
-    QrGeneratorUi()
+fun QrGeneratorScreen(
+    secretKey:String,
+    uniqueTag:String,
+    viewModel: QrGeneratorViewModel
+) {
+    // 1. Tell the ViewModel to start the timer as soon as this screen enters the composition
+    LaunchedEffect(secretKey, uniqueTag) {
+        if (secretKey.isNotEmpty() && uniqueTag.isNotEmpty()) {
+            viewModel.generateQrText(secretKey, uniqueTag)
+        }
+    }
+
+    // 2. Observe the state safely
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    QrGeneratorUi(uiState, viewModel)
 }
