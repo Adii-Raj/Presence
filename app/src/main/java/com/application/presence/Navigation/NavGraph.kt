@@ -30,6 +30,7 @@ import com.application.presence.Screen.HomeScreen
 import com.application.presence.Screen.QrGeneratorScreen
 import com.application.presence.Screen.ScannerScreen
 import com.application.presence.Screen.SplashScreen
+import com.application.presence.data.FastMyLocationProvider
 import com.application.presence.data.local.DeviceManager
 import com.application.presence.data.model.StudentAttendance
 import com.application.presence.data.state.EventInsertState
@@ -142,6 +143,8 @@ fun NavGraph(){
         }
 
         composable<scannerScreen> {
+            val context = LocalContext.current
+            val locationProvider = remember { FastMyLocationProvider(context.applicationContext) }
             val viewmodel: ScannerViewModel = viewModel(
                 factory = ScannerViewModelFactory(
                     onSubmissionSuccess = {
@@ -153,7 +156,8 @@ fun NavGraph(){
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
-                    }
+                    },
+                    locationProvider = locationProvider
                 )
             )
             ScannerScreen(viewmodel)

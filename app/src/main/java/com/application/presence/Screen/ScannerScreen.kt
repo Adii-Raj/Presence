@@ -22,6 +22,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -52,6 +53,14 @@ fun ScannerScreen(
 
     var selectedSem by remember { mutableStateOf("") }
     var selectedSec by remember { mutableStateOf("") }
+
+    val currentLocation by viewModel.locationState.collectAsStateWithLifecycle()
+
+    DisposableEffect(Unit) {
+        viewModel.startTracking()
+        onDispose { viewModel.startTracking() }
+    }
+
 
     val SemToSec = mapOf(
         "1st" to listOf("P1", "P2", "C1", "C2"),
@@ -87,6 +96,8 @@ fun ScannerScreen(
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
+                        Text("Latitude: ${currentLocation?.latitude} & Longitude: ${currentLocation?.longitude}")
+
                         CustomDropdown(
                             label = "Semester",
                             options = SemToSec.keys.toList(),

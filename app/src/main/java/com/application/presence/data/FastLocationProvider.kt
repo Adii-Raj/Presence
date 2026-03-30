@@ -1,4 +1,4 @@
-package com.application.presence.data.local
+package com.application.presence.data
 
 import android.annotation.SuppressLint
 import android.content.Context
