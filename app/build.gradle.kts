@@ -103,6 +103,8 @@ dependencies {
 
     val supabaseVersion = "3.3.0"
     implementation(platform("io.github.jan-tennert.supabase:bom:$supabaseVersion"))
+    //Edge function
+    implementation("io.github.jan-tennert.supabase:functions-kt:$supabaseVersion")
 
     implementation("io.github.jan-tennert.supabase:postgrest-kt")
 
@@ -135,5 +137,6 @@ dependencies {
     implementation("com.google.android.gms:play-services-location:21.2.0")
     //Zxing Dependency which helps generate QR
     implementation("com.google.zxing:core:3.5.3")
+
 
 }

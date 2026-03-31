@@ -160,7 +160,10 @@ fun NavGraph(){
                     locationProvider = locationProvider
                 )
             )
-            ScannerScreen(viewmodel)
+            ScannerScreen(
+                viewmodel,
+                onPopBackStack = {navController.popBackStack()}
+            )
         }
 
         composable<addEventScreen> {

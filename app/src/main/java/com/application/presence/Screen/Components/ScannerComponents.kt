@@ -1,7 +1,9 @@
 package com.application.presence.Screen.Components
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
+import android.widget.Toast
 import androidx.camera.core.Camera
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -37,8 +39,39 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.application.presence.ML.QrAnalyzer
+import com.application.presence.data.model.Profile
+import com.application.presence.data.state.ScannerSubmissionState
 import com.application.presence.viewmodel.ScannerViewModel
 
+fun AddAttendance(
+    context: Context,
+    viewModel: ScannerViewModel,
+    latitude: Double?,
+    longitude: Double?,
+    submissionState: ScannerSubmissionState,
+    profileState: Profile?
+){
+
+    when(val state = submissionState){
+        is ScannerSubmissionState.Loading -> {
+            viewModel.decodeScannedText()?.let {(uniqueTag, secretKey)->
+                viewModel.verifyScannedQr(uniqueTag, secretKey, profileState?.roll!!, latitude?:0.0, longitude?:0.0)
+            }
+        }
+        is ScannerSubmissionState.Success ->{
+
+            viewModel.changeSubmissionState(ScannerSubmissionState.Stopped)
+        }
+        is ScannerSubmissionState.Error -> {
+            Toast.makeText(
+                context,
+                state.message,
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+        else -> {/*I don't want to do anything here*/}
+    }
+}
 
 @Composable
 fun RequestCameraPermission(
