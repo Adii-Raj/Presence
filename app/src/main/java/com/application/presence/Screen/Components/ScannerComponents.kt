@@ -42,6 +42,12 @@ import com.application.presence.ML.QrAnalyzer
 import com.application.presence.data.model.Profile
 import com.application.presence.data.state.ScannerSubmissionState
 import com.application.presence.viewmodel.ScannerViewModel
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+
 
 fun AddAttendance(
     context: Context,
@@ -70,6 +76,45 @@ fun AddAttendance(
             ).show()
         }
         else -> {/*I don't want to do anything here*/}
+    }
+}
+
+@Composable
+fun CustomBannerScreen(message:String) {
+    // State to track if the banner should be visible
+    var showErrorBanner by remember { mutableStateOf(false) }
+
+    Column(modifier = Modifier.fillMaxSize()) {
+
+        // The Banner UI
+        AnimatedVisibility(visible = showErrorBanner) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.errorContainer)
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "Error: $message",
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    modifier = Modifier.weight(1f)
+                )
+                TextButton(
+                    onClick = { showErrorBanner = false } // Dismiss the banner on click
+                ) {
+                    Text("OK", color = MaterialTheme.colorScheme.onErrorContainer)
+                }
+            }
+        }
+
+        // The Rest of your Screen UI
+        Column(modifier = Modifier.padding(16.dp)) {
+            Button(onClick = { showErrorBanner = true }) {
+                Text("Simulate Error")
+            }
+        }
     }
 }
 

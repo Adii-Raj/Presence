@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -71,6 +72,7 @@ fun ScannerScreen(
     val currentLocation by viewModel.locationState.collectAsStateWithLifecycle()
     val submissionState by viewModel.submissionState.collectAsStateWithLifecycle()
     val profileState by viewModel.profileState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(submissionState) {
         when (val state = submissionState) {
@@ -91,6 +93,7 @@ fun ScannerScreen(
 
                 // Automatically turn the camera back on so they can try scanning again!
                 viewModel.restartScanning()
+                onPopBackStack()
             }
 
             // We don't need to show Toasts for Loading or Stopped states
