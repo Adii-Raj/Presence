@@ -19,7 +19,7 @@ class MainActivity : ComponentActivity() {
             0
         ) != 0
 
-        if (!isDeveloperModeEnabled) {
+        if (isDeveloperModeEnabled) {
             Toast.makeText(
                 this,
                 "Please disable Developer Mode to use this app.",
