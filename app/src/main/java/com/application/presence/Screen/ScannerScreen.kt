@@ -46,7 +46,6 @@ import androidx.compose.ui.unit.dp
 import com.application.presence.R
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.application.presence.Screen.Components.AddAttendance
 import com.application.presence.Screen.Components.CameraScanner
 import com.application.presence.Screen.Components.CustomDropdown
 import com.application.presence.Screen.Components.RequestCameraPermission
@@ -83,19 +82,15 @@ fun ScannerScreen(
                 onPopBackStack()
             }
 
-            // 3. HANDLE ERRORS (e.g., Wrong location, Expired QR)
             is ScannerSubmissionState.Error -> {
                 Toast.makeText(context, "Error: ${state.message}", Toast.LENGTH_LONG).show()
 
-                // Reset the state
                 viewModel.changeSubmissionState(ScannerSubmissionState.Stopped)
 
-                // Automatically turn the camera back on so they can try scanning again!
                 viewModel.restartScanning()
                 onPopBackStack()
             }
 
-            // We don't need to show Toasts for Loading or Stopped states
             else -> { /* Do nothing */ }
         }
     }
@@ -194,150 +189,160 @@ fun ScannerScreen(
     )
     val selectedSemList = SemToSec[selectedSem] ?: emptyList()
 
-        //Just use to show scanned text value at the bottom of the scanner
-        val text = viewModel.scannedText
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
+    when(submissionState){
+        is ScannerSubmissionState.Loading -> {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ){
+                Box(
+                    contentAlignment = Alignment.Center
+                ){
+                    CircularProgressIndicator()
+                }
+                Text("Submitting Attendance!")
+            }
+        }
+        else -> {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
 
-            //I don't think so that now I need scannerState, cause I haven't linked it with database
-            when (scannerState) {
-                false -> {
-                    when(val currentState = currentLocation){
-                        is LocationState.IsScucess -> {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier
-                                    .fillMaxSize()
-                            ) {
+                //I don't think so that now I need scannerState, cause I haven't linked it with database
+                when (scannerState) {
+                    false -> {
+                        when(val currentState = currentLocation){
+                            is LocationState.IsScucess -> {
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                ) {
+                                    Column(
+                                        modifier = Modifier.fillMaxSize(),
+                                        verticalArrangement = Arrangement.Center,
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        CustomDropdown(
+                                            label = "Semester",
+                                            options = SemToSec.keys.toList(),
+                                            selectedValue = selectedSem,
+                                            onValueChange = {
+                                                selectedSem = it
+                                                selectedSec = "" // Resets the branch if they change the course
+                                            },
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+                                        CustomDropdown(
+                                            label = "Section",
+                                            options = selectedSemList,
+                                            selectedValue = selectedSec,
+                                            onValueChange = {
+                                                selectedSec = it
+                                            },
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+                                        Button(
+                                            onClick = {
+                                                viewModel.chnageScannerState(true)
+                                            },
+                                            enabled = (selectedSem.isNotEmpty() && selectedSec.isNotEmpty())
+                                        ) {
+                                            Icon(
+                                                Icons.Default.QrCodeScanner,
+                                                contentDescription = "Qr Code Scanner Button"
+                                            )
+                                            Spacer(modifier = Modifier.width(6.dp))
+                                            Text("Scan")
+                                        }
+                                    }
+                                }
+                            }
+                            is LocationState.Error -> {
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                    modifier = Modifier.fillMaxWidth()
+                                ){
+                                    Column(
+                                        verticalArrangement = Arrangement.Center,
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        modifier = Modifier.fillMaxSize()
+                                    ) {
+                                        Image(
+                                            painter = painterResource(id = R.drawable.nolocation),
+                                            contentDescription = "Location Not Found Image",
+                                            modifier = Modifier
+                                                .fillMaxSize(0.6f)
+                                                .aspectRatio(1f),
+                                            contentScale = ContentScale.Fit
+                                        )
+                                        Button(
+                                            onClick = {
+                                                checkPermission()
+                                            }
+                                        ) {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.Center
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.RestartAlt,
+                                                    contentDescription = "Restart Location Permission"
+                                                )
+                                                Text("Enable Location")
+                                            }
+                                        }
+                                    }
+                                }
+                                Toast.makeText(
+                                    context,
+                                    currentState.message,
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                            else -> {
                                 Column(
-                                    modifier = Modifier.fillMaxSize(),
                                     verticalArrangement = Arrangement.Center,
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    CustomDropdown(
-                                        label = "Semester",
-                                        options = SemToSec.keys.toList(),
-                                        selectedValue = selectedSem,
-                                        onValueChange = {
-                                            selectedSem = it
-                                            selectedSec = "" // Resets the branch if they change the course
-                                        },
-                                        modifier = Modifier.fillMaxWidth()
-                                    )
-                                    CustomDropdown(
-                                        label = "Section",
-                                        options = selectedSemList,
-                                        selectedValue = selectedSec,
-                                        onValueChange = {
-                                            selectedSec = it
-                                        },
-                                        modifier = Modifier.fillMaxWidth()
-                                    )
-                                    Button(
-                                        onClick = {
-                                            viewModel.chnageScannerState(true)
-                                        },
-                                        enabled = (selectedSem.isNotEmpty() && selectedSec.isNotEmpty())
-                                    ) {
-                                        Icon(
-                                            Icons.Default.QrCodeScanner,
-                                            contentDescription = "Qr Code Scanner Button"
-                                        )
-                                        Spacer(modifier = Modifier.width(6.dp))
-                                        Text("Scan")
-                                    }
+                                    CircularProgressIndicator()
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text("Trying to locate you!")
                                 }
+
                             }
                         }
-                        is LocationState.Error -> {
+
+                    }
+
+                    true -> {
+                        RequestCameraPermission {
                             Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier.fillMaxWidth()
-                            ){
-                                Column(
-                                    verticalArrangement = Arrangement.Center,
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    modifier = Modifier.fillMaxSize()
-                                ) {
-                                    Image(
-                                        painter = painterResource(id = R.drawable.nolocation),
-                                        contentDescription = "Location Not Found Image",
-                                        modifier = Modifier
-                                            .fillMaxSize(0.6f)
-                                            .aspectRatio(1f),
-                                        contentScale = ContentScale.Fit
-                                    )
+                                modifier = Modifier
+                                    .size(350.dp)
+                                    .clip(RoundedCornerShape(10.dp)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (viewModel.isScanning) {
+                                    CameraScanner(viewModel)
+                                } else {
                                     Button(
                                         onClick = {
-                                            checkPermission()
-                                        }
+                                            viewModel.restartScanning()
+                                        },
+                                        modifier = Modifier.clip(RoundedCornerShape(8.dp))
                                     ) {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.Center
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Default.RestartAlt,
-                                                contentDescription = "Restart Location Permission"
-                                            )
-                                            Text("Enable Location")
-                                        }
+                                        Text("Scan Again")
                                     }
                                 }
                             }
-                            Toast.makeText(
-                                context,
-                                currentState.message,
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                        else -> {
-                            Column(
-                                verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                CircularProgressIndicator()
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text("Trying to locate you!")
-                            }
-
                         }
                     }
-
-                }
-
-                true -> {
-                    RequestCameraPermission {
-                        Box(
-                            modifier = Modifier
-                                .size(350.dp)
-                                .clip(RoundedCornerShape(10.dp)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            if (viewModel.isScanning) {
-                                CameraScanner(viewModel)
-                            } else {
-                                Button(
-                                    onClick = {
-                                        viewModel.restartScanning()
-                                    },
-                                    modifier = Modifier.clip(RoundedCornerShape(8.dp))
-                                ) {
-                                    Text("Scan Again")
-                                }
-                            }
-                        }
-                    }
-                    Text(
-                        text = "Scanned Result: ",
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(text = text)
                 }
             }
         }
-
+    }
     }

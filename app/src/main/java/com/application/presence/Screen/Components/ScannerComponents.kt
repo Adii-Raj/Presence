@@ -50,36 +50,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 
 
-fun AddAttendance(
-    context: Context,
-    viewModel: ScannerViewModel,
-    latitude: Double?,
-    longitude: Double?,
-    submissionState: ScannerSubmissionState,
-    profileState: Profile?
-){
-
-    when(val state = submissionState){
-        is ScannerSubmissionState.Loading -> {
-            viewModel.decodeScannedText()?.let {(uniqueTag, secretKey)->
-                viewModel.verifyScannedQr(uniqueTag, secretKey, profileState?.roll!!, latitude?:0.0, longitude?:0.0)
-            }
-        }
-        is ScannerSubmissionState.Success ->{
-
-            viewModel.changeSubmissionState(ScannerSubmissionState.Stopped)
-        }
-        is ScannerSubmissionState.Error -> {
-            Toast.makeText(
-                context,
-                state.message,
-                Toast.LENGTH_SHORT
-            ).show()
-        }
-        else -> {/*I don't want to do anything here*/}
-    }
-}
-
 @Composable
 fun CustomBannerScreen(message:String) {
     // State to track if the banner should be visible

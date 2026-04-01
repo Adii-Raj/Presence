@@ -80,12 +80,12 @@ fun NavGraph(){
                 viewModel = splashViewModel,
                 onNavigateToLogin = {
                     navController.navigate(authScreen){
-                        popUpTo(authScreen){inclusive = false}
+                        popUpTo(splashScreen){inclusive = true}
                     }
                 },
                 onNavigateToHome = {
                     navController.navigate(homeScreen){
-                        popUpTo(homeScreen){inclusive = false}
+                        popUpTo(splashScreen){inclusive = true}
                     }
                 },
                 onNavigateToDetail = {
@@ -150,9 +150,7 @@ fun NavGraph(){
             val viewmodel: ScannerViewModel = viewModel(
                 factory = ScannerViewModelFactory(
                     onSubmissionSuccess = {
-                        navController.navigate(homeScreen){
-                            popUpTo(homeScreen){inclusive = false}
-                        }
+                        navController.popBackStack()
                     },
                     locationProvider = locationProvider,
                     application = context.applicationContext as Application

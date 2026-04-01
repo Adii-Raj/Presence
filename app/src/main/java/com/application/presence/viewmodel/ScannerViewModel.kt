@@ -29,7 +29,7 @@ import kotlinx.coroutines.Job
 class ScannerViewModel(
     application: Application,
     private val locationProvider: FastMyLocationProvider,
-    onSubmissionSuccess:() -> Unit
+    private val onSubmissionSuccess:() -> Unit
 ): ViewModel() {
     private val _isDeveloperModeEnabled = MutableStateFlow(false)
     val isDeveloperModeEnabled = _isDeveloperModeEnabled
@@ -78,6 +78,7 @@ class ScannerViewModel(
     }
 
     fun onQrScanned(result:String, application: Application){
+        _submissionState.value = ScannerSubmissionState.Loading
         checkDeveloperMode(application)
         if(!isScanning) return
         scannedText = result
