@@ -1,6 +1,7 @@
 package com.application.presence.Navigation
 
 import android.app.Application
+import android.provider.Settings
 import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -79,12 +80,12 @@ fun NavGraph(){
                 viewModel = splashViewModel,
                 onNavigateToLogin = {
                     navController.navigate(authScreen){
-                        popUpTo(splashScreen){inclusive = true}
+                        popUpTo(authScreen){inclusive = false}
                     }
                 },
                 onNavigateToHome = {
                     navController.navigate(homeScreen){
-                        popUpTo(authScreen){inclusive = true}
+                        popUpTo(homeScreen){inclusive = false}
                     }
                 },
                 onNavigateToDetail = {
@@ -129,6 +130,7 @@ fun NavGraph(){
             val repository = HomeRepository()
             val factory = EventViewModelFactory(application ,repository)
             val eventViewModel: EventViewModel = viewModel(factory = factory)
+
             HomeScreen(
                 authViewModel = authViewModel,
                 eventViewmodel = eventViewModel,
@@ -150,14 +152,10 @@ fun NavGraph(){
                     onSubmissionSuccess = {
                         navController.navigate(homeScreen){
                             popUpTo(homeScreen){inclusive = false}
-                            Toast.makeText(
-                                context,
-                                "Successfully Submitted Attendance",
-                                Toast.LENGTH_SHORT
-                            ).show()
                         }
                     },
-                    locationProvider = locationProvider
+                    locationProvider = locationProvider,
+                    application = context.applicationContext as Application
                 )
             )
             ScannerScreen(

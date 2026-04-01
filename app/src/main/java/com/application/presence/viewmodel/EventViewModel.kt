@@ -1,6 +1,7 @@
 package com.application.presence.viewmodel
 
 import android.app.Application
+import android.provider.Settings
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -26,6 +27,7 @@ class EventViewModel(
     init {
         getEvent()
     }
+
     fun getEvent(isRefresh: Boolean = false) {
         viewModelScope.launch {
             if (isRefresh) {

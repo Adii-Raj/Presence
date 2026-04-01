@@ -1,7 +1,11 @@
 package com.application.presence.viewmodel
 
+import android.app.Application
+import android.content.Context
 import android.location.Location
+import android.provider.Settings
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -23,13 +27,28 @@ import org.osmdroid.views.overlay.mylocation.IMyLocationProvider
 import kotlinx.coroutines.Job
 
 class ScannerViewModel(
+    application: Application,
     private val locationProvider: FastMyLocationProvider,
     onSubmissionSuccess:() -> Unit
 ): ViewModel() {
+    private val _isDeveloperModeEnabled = MutableStateFlow(false)
+    val isDeveloperModeEnabled = _isDeveloperModeEnabled
+
     val repository = ScannerRepository()
     init {
+        checkDeveloperMode(application)
+        if(!isDeveloperModeEnabled.value){
+            Toast.makeText(
+                application,
+                "Disable Developer Mode!",
+                Toast.LENGTH_SHORT
+            ).show()
+            onSubmissionSuccess()
+        }
         fetchProfile()
     }
+
+
     var scannedText by mutableStateOf("")
         private set
     var isScanning by mutableStateOf(true)
@@ -42,6 +61,15 @@ class ScannerViewModel(
     private val _locationState = MutableStateFlow<LocationState>(LocationState.IsLoading)
     val locationState: StateFlow<LocationState> = _locationState.asStateFlow()
 
+
+    private fun checkDeveloperMode(context: Application) {
+        val isEnabled = Settings.Global.getInt(
+            context.contentResolver,
+            Settings.Global.DEVELOPMENT_SETTINGS_ENABLED,
+            0
+        ) != 0
+        _isDeveloperModeEnabled.value = isEnabled
+    }
     fun chnageScannerState(value: Boolean){
         _scannerState.value = value
     }
@@ -49,8 +77,8 @@ class ScannerViewModel(
         _submissionState.value = value
     }
 
-    fun onQrScanned(result:String){
-        Log.d("SCANNER_DEBUG", "1. Camera scanned QR: $result")
+    fun onQrScanned(result:String, application: Application){
+        checkDeveloperMode(application)
         if(!isScanning) return
         scannedText = result
         isScanning = false
@@ -59,32 +87,33 @@ class ScannerViewModel(
 
         val currentLocation = _locationState.value
         val currentProfile = _profileState.value
-
-        Log.d("SCANNER_DEBUG", "2. Current Location State: $currentLocation")
-        Log.d("SCANNER_DEBUG", "3. Current Profile State: $currentProfile")
-
-        // 2. Safety Check: Make sure we actually have GPS and Profile data before sending
-        if (currentLocation is LocationState.IsScucess && currentProfile != null) {
-
-            val decodedValues = decodeScannedText()
-
-            if (decodedValues != null) {
-                // 3. FIRE THE NETWORK REQUEST!
-                verifyScannedQr(
-                    uniqueTag = decodedValues.first,
-                    scannedCode = decodedValues.second,
-                    studentRoll = currentProfile.roll,
-                    userLatitude = currentLocation.latitude.toDoubleOrNull() ?: 0.0,
-                    userLongitude = currentLocation.longitude.toDoubleOrNull() ?: 0.0
-                )
-            } else {
-                _submissionState.value = ScannerSubmissionState.Error("Invalid QR Code Format")
-            }
-        } else {
-            _submissionState.value = ScannerSubmissionState.Error("Missing GPS Location or Profile Data")
+        if(!isDeveloperModeEnabled.value){
+            Toast.makeText(
+                application,
+                "Disable Developer Mode!",
+                Toast.LENGTH_SHORT
+            ).show()
         }
+        else{
+            if (currentLocation is LocationState.IsScucess && currentProfile != null) {
 
+                val decodedValues = decodeScannedText()
 
+                if (decodedValues != null) {
+                    verifyScannedQr(
+                        uniqueTag = decodedValues.first,
+                        scannedCode = decodedValues.second,
+                        studentRoll = currentProfile.roll,
+                        userLatitude = currentLocation.latitude.toDoubleOrNull() ?: 0.0,
+                        userLongitude = currentLocation.longitude.toDoubleOrNull() ?: 0.0
+                    )
+                } else {
+                    _submissionState.value = ScannerSubmissionState.Error("Invalid QR Code Format")
+                }
+            } else {
+                _submissionState.value = ScannerSubmissionState.Error("Missing GPS Location or Profile Data")
+            }
+        }
     }
     fun restartScanning(){
         isScanning=true

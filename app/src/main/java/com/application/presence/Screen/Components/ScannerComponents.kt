@@ -1,6 +1,7 @@
 package com.application.presence.Screen.Components
 
 import android.Manifest
+import android.app.Application
 import android.content.Context
 import android.content.pm.PackageManager
 import android.widget.Toast
@@ -152,6 +153,7 @@ fun CameraScanner(
     viewModel: ScannerViewModel
 ) {
     val context = LocalContext.current
+    val application = context.applicationContext
     //This lifecycle owner will be used to change from app screen to URL
     val lifecycleOwner = LocalLifecycleOwner.current
     //This we are using to make camera as object which we can use to control camera features, e.g. zoom, torch on or OFF
@@ -199,7 +201,7 @@ fun CameraScanner(
                     analyzer.setAnalyzer(
                         ContextCompat.getMainExecutor(ctx),
                         QrAnalyzer { result ->
-                            viewModel.onQrScanned(result)
+                            viewModel.onQrScanned(result, application = application as Application)
                         }
                     )
 

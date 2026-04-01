@@ -72,7 +72,6 @@ fun ScannerScreen(
     val currentLocation by viewModel.locationState.collectAsStateWithLifecycle()
     val submissionState by viewModel.submissionState.collectAsStateWithLifecycle()
     val profileState by viewModel.profileState.collectAsStateWithLifecycle()
-    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(submissionState) {
         when (val state = submissionState) {
@@ -141,9 +140,6 @@ fun ScannerScreen(
         }
     }
 
-    // =================================================================
-    // LAUNCHER 1: App Permissions (Are we allowed to use the GPS?)
-    // =================================================================
     val locationPermissionRequest = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -206,7 +202,7 @@ fun ScannerScreen(
             verticalArrangement = Arrangement.Center
         ) {
 
-            //I don't think so that now I need scannerState
+            //I don't think so that now I need scannerState, cause I haven't linked it with database
             when (scannerState) {
                 false -> {
                     when(val currentState = currentLocation){
