@@ -25,7 +25,12 @@ class ScannerRepository{
         return try {
             // 1. Create the data object
             val requestData = AttendanceRequest(uniqueTag, scannedCode, studentRoll, userLatitude, userLongitude)
-            val currentSessionToken = supabase.auth.currentAccessTokenOrNull()
+            val currentSessionToken = try {
+                supabase.auth.currentAccessTokenOrNull()
+            } catch (e: Exception) {
+                Log.e("ScannerRepository", "Error getting access token: ${e.message}")
+                null
+            }
 
             supabase.functions.invoke("rapid-verify") {
                 // 1. Manually attach the valid JWT to the request headers!
@@ -45,8 +50,6 @@ class ScannerRepository{
             ScannerSubmissionState.Success
 
         } catch (e: RestException) {
-            // This grabs ONLY the first short sentence (e.g., "Already marked present")
-            // and throws away the 1,500 characters of HTTP garbage!
             val cleanError = e.message?.substringBefore("\n") ?: "Server rejected the request"
             ScannerSubmissionState.Error(cleanError)
 
@@ -57,9 +60,9 @@ class ScannerRepository{
     }
 
     suspend fun getProfile(): Profile? {
-        val supabase = SupabaseClientProvider.client
-        val email = supabase.auth.currentUserOrNull()?.email?: return null
         return try {
+            val supabase = SupabaseClientProvider.client
+            val email = supabase.auth.currentUserOrNull()?.email ?: return null
             supabase.from("profiles")
                 .select {
                     filter {
@@ -67,8 +70,8 @@ class ScannerRepository{
                     }
                 }
                 .decodeSingleOrNull()
-        }catch (e: Exception){
-            e.printStackTrace()
+        } catch (e: Exception) {
+            Log.e("ScannerRepository", "Error getting profile: ${e.message}")
             null
         }
     }

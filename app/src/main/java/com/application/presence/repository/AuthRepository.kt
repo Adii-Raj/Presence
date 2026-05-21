@@ -95,36 +95,49 @@ class AuthRepository(
     }
 
     suspend fun InsertProfile(profile: Profile){
-        val supabase = SupabaseClientProvider.client
+        try {
+            val supabase = SupabaseClientProvider.client
 
-        supabase
-            .from("profiles")
-            .insert(profile)
+            supabase
+                .from("profiles")
+                .insert(profile)
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Error inserting profile: ${e.message}")
+        }
     }
 
     //It is not local but we want this to store data locally
     suspend fun supabaseProfile(): Profile? {
-        val user = supabase.auth.currentUserOrNull()
-        return user?.email?.let { safeEmail ->
+        return try {
+            val user = supabase.auth.currentUserOrNull()
+            user?.email?.let { safeEmail ->
 
-            supabase
-                .from("profiles")
-                .select {
-                    filter { eq("gmail_id", safeEmail) }
-                }
-                .decodeSingleOrNull<Profile>()
+                supabase
+                    .from("profiles")
+                    .select {
+                        filter { eq("gmail_id", safeEmail) }
+                    }
+                    .decodeSingleOrNull<Profile>()
 
+            }
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Error fetching supabase profile: ${e.message}")
+            null
         }
     }
 
     suspend fun AndroidIdReturnedByGmail(id:String): String {
-        val existingProfiles = supabase.from("profiles")
-            .select {
-                filter { eq("device_fingerprint", id) }
-            }
-            .decodeSingleOrNull<Profile>() // We use decodeList() just in case, to avoid crashes
+        return try {
+            val existingProfiles = supabase.from("profiles")
+                .select {
+                    filter { eq("device_fingerprint", id) }
+                }
+                .decodeSingleOrNull<Profile>()
             Log.e("ExistingProfiles","Existing Profiles: ${existingProfiles}")
-        return  existingProfiles?.gmail_id ?: ""
+            existingProfiles?.gmail_id ?: ""
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Error checking Android ID: ${e.message}")
+            ""
+        }
     }
 }
-

@@ -10,25 +10,33 @@ import io.github.jan.supabase.postgrest.from
 class HomeRepository {
 
     suspend fun getEvent(): List<EventDataClass>{
-        val supabase = SupabaseClientProvider.client
-        val result = supabase.from("eventList")
-            .select()
-            .decodeList<EventDataClass>()
-        return result
+        return try {
+            val supabase = SupabaseClientProvider.client
+            supabase.from("eventList")
+                .select()
+                .decodeList<EventDataClass>()
+        } catch (e: Exception) {
+            Log.e("HomeRepository", "Error fetching events: ${e.message}")
+            emptyList()
+        }
     }
 
     suspend fun getUniqueAndSecret(
         id:String
     ): KeysDataClass?
     {
-        val supabase = SupabaseClientProvider.client
-        val result = supabase.from("event_qr_keys")
-            .select {
-                filter {
-                    eq("event_id", id)
+        return try {
+            val supabase = SupabaseClientProvider.client
+            supabase.from("event_qr_keys")
+                .select {
+                    filter {
+                        eq("event_id", id)
+                    }
                 }
-            }
-            .decodeSingleOrNull<KeysDataClass>()
-        return result
+                .decodeSingleOrNull<KeysDataClass>()
+        } catch (e: Exception) {
+            Log.e("HomeRepository", "Error fetching keys: ${e.message}")
+            null
+        }
     }
 }

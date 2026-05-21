@@ -1,6 +1,7 @@
 package com.application.presence.repository
 
 import android.content.Context
+import android.util.Log
 import com.application.presence.data.SupabaseClientProvider
 import com.application.presence.data.model.EventDataClass
 import io.github.jan.supabase.postgrest.from
@@ -23,9 +24,13 @@ class AddEventRepository(private val context: Context) {
 
 
     suspend fun insertEvent(eventDataClass: EventDataClass){
-        val supabase = SupabaseClientProvider.client
-        supabase
-            .from("eventList")
-            .insert(eventDataClass)
+        try {
+            val supabase = SupabaseClientProvider.client
+            supabase
+                .from("eventList")
+                .insert(eventDataClass)
+        } catch (e: Exception) {
+            Log.e("AddEventRepository", "Error inserting event: ${e.message}")
+        }
     }
 }

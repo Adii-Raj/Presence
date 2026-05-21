@@ -25,10 +25,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.application.presence.R
-import com.application.presence.data.SupabaseClientProvider
 import com.application.presence.data.model.AuthResponse
 import com.application.presence.viewmodel.AuthViewModel
-import io.github.jan.supabase.auth.auth
 
 @SuppressLint("HardwareIds")
 @Composable
@@ -40,9 +38,9 @@ fun AuthScreen(
 
     val authState by viewModel.authState.collectAsState()
     val returnedGmailId by viewModel.returnedGmailId.collectAsState()
+    val currentUserEmail by viewModel.currentUserEmail.collectAsState()
     val context = LocalContext.current
-    val supabase = SupabaseClientProvider.client
-    val email = supabase.auth.currentUserOrNull()?.email
+
     val androidId = Settings.Secure.getString(
         context.contentResolver,
         Settings.Secure.ANDROID_ID
@@ -58,7 +56,7 @@ fun AuthScreen(
             is AuthResponse.Success -> {
                 val IsNewUser = (authState as? AuthResponse.Success)?.isNewUser
                 if(IsNewUser == true){
-                    if(email != returnedGmailId && returnedGmailId != ""){
+                    if(currentUserEmail != returnedGmailId && returnedGmailId != ""){
                         Toast.makeText(
                             context,
                             "This Device is Locked with: ${returnedGmailId}",
@@ -68,7 +66,7 @@ fun AuthScreen(
                         onAuthSuccess()
                     }
                 }else{
-                    if(email != returnedGmailId && returnedGmailId != ""){
+                    if(currentUserEmail != returnedGmailId && returnedGmailId != ""){
                         Toast.makeText(
                             context,
                             "This Device is Locked with: ${returnedGmailId}",

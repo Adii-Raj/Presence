@@ -13,6 +13,7 @@ import com.application.presence.data.local.UserKeysLocal
 import com.application.presence.data.model.Profile
 import com.application.presence.repository.AuthRepository
 import com.application.presence.repository.LocalUserRepository
+import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
@@ -31,9 +32,29 @@ class AuthViewModel(
     private val _supabaseProfile = MutableStateFlow<Profile?>(null)
     val supabaseProfile: StateFlow<Profile?> = _supabaseProfile
 
+    private val _currentUserEmail = MutableStateFlow<String?>(null)
+    val currentUserEmail: StateFlow<String?> = _currentUserEmail
+
+    private val _currentUserId = MutableStateFlow<String?>(null)
+    val currentUserId: StateFlow<String?> = _currentUserId
+
     init {
         loadProfile()
+        refreshCurrentUser()
     }
+
+    fun refreshCurrentUser() {
+        viewModelScope.launch {
+            try {
+                val user = repository.supabase.auth.currentUserOrNull()
+                _currentUserEmail.value = user?.email
+                _currentUserId.value = user?.id
+            } catch (e: Exception) {
+                Log.e("AuthViewModel", "Error refreshing current user: ${e.message}")
+            }
+        }
+    }
+
     //Loads Profile data if existed in _profile stateflow
     fun loadProfile(){
         viewModelScope.launch {
@@ -97,6 +118,9 @@ class AuthViewModel(
         repository.signInWithGoogle()
             .onEach {
                 _authState.value = it
+                if (it is AuthResponse.Success) {
+                    refreshCurrentUser()
+                }
             }
             .launchIn(viewModelScope)
     }

@@ -1,6 +1,7 @@
 package com.application.presence.viewmodel
 
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.application.presence.data.SupabaseClientProvider
@@ -30,24 +31,28 @@ class SplashViewModel(
 
     private fun checkAuthenticationState() {
         viewModelScope.launch {
-            val supabase = SupabaseClientProvider.client
-            val profile = supabase.auth.currentUserOrNull()
+            try {
+                val supabase = SupabaseClientProvider.client
+                // currentUserOrNull might trigger a network request if the session needs refreshing
+                val profile = supabase.auth.currentUserOrNull()
 
-            val isLoggedIn = profile!=null
+                val isLoggedIn = profile != null
 
-            //val preference = context.userDataStore.data.first()  --> We can use this instead of prefs
-            //val email2 = preference[UserKeysLocal.EMAIL]
+                val isDataSaved = repo.isUserDataSaved()
 
-
-            val isDataSaved = repo.isUserDataSaved()
-
-            if (isLoggedIn) {
-                if(isDataSaved){
-                    _splashState.value = SplashState.NavigateToHome
-                }else{
+                if (isLoggedIn) {
+                    if (isDataSaved) {
+                        _splashState.value = SplashState.NavigateToHome
+                    } else {
+                        _splashState.value = SplashState.NavigateToLogin
+                    }
+                } else {
                     _splashState.value = SplashState.NavigateToLogin
                 }
-            } else {
+            } catch (e: Exception) {
+                Log.e("SplashViewModel", "Error checking auth state: ${e.message}")
+                // If network fails, we probably want to try again or fall back to login
+                // For now, navigating to Login is a safe fallback for auth errors
                 _splashState.value = SplashState.NavigateToLogin
             }
         }
