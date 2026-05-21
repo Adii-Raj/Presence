@@ -1,12 +1,7 @@
 package com.application.presence.viewmodel
 
 import android.app.Application
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.application.presence.data.model.EventDataClass
 import com.application.presence.data.state.EventInsertState
@@ -20,14 +15,13 @@ import java.io.File
 
 class AddEventViewModel(
     application: Application): AndroidViewModel(application) {
-    // We use a simple boolean to toggle the UI for now.
-    // Later, you can bind this to your ViewModel state!
+    
     private val _isLocationSaved = MutableStateFlow(false)
     val isLocationSaved: StateFlow<Boolean> = _isLocationSaved
     private val repository = AddEventRepository(application)
     private val _mapFile = MutableStateFlow<File?>(null)
     val mapFile: StateFlow<File?> = _mapFile.asStateFlow()
-    // MVVM: ViewModel holds the state of the pinned location
+    
     private val _pinnedLocation = MutableStateFlow<GeoPoint?>(null)
     val pinnedLocation: StateFlow<GeoPoint?> = _pinnedLocation.asStateFlow()
 
@@ -68,6 +62,30 @@ class AddEventViewModel(
                 _insertState.value = EventInsertState.IsSuccess
             }catch (e:Exception){
                 _insertState.value = EventInsertState.Error("Error Occurred: ${e.message}")
+            }
+        }
+    }
+
+    fun updateEvent(eventDataClass: EventDataClass) {
+        viewModelScope.launch {
+            _insertState.value = EventInsertState.IsLoading
+            try {
+                repository.updateEvent(eventDataClass)
+                _insertState.value = EventInsertState.IsSuccess
+            } catch (e: Exception) {
+                _insertState.value = EventInsertState.Error("Error Updating: ${e.message}")
+            }
+        }
+    }
+
+    fun deleteEvent(eventId: String) {
+        viewModelScope.launch {
+            _insertState.value = EventInsertState.IsLoading
+            try {
+                repository.deleteEvent(eventId)
+                _insertState.value = EventInsertState.IsSuccess
+            } catch (e: Exception) {
+                _insertState.value = EventInsertState.Error("Error Deleting: ${e.message}")
             }
         }
     }

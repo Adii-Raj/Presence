@@ -25,9 +25,11 @@ import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -344,25 +346,46 @@ fun MapPicker(viewModel: AddEventViewModel = viewModel()){
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailScreen(
-    onSaveClick:(EventDataClass) -> Unit
+    event: EventDataClass? = null,
+    onSaveClick:(EventDataClass) -> Unit,
+    onDeleteClick: ((String) -> Unit)? = null
 ){
-    var eventName by remember { mutableStateOf("") }
-    var eventDate by remember { mutableStateOf("") }
-    var eventTime by remember { mutableStateOf("") }
-    var eventLocation by remember { mutableStateOf("") }
-    var eventDescription by remember { mutableStateOf("") }
-    var eventImage by remember { mutableStateOf("") }
-    var eventNote by remember { mutableStateOf("") }
+    var eventName by remember { mutableStateOf(event?.Event_Name ?: "") }
+    var eventDate by remember { mutableStateOf(event?.Event_Date ?: "") }
+    var eventTime by remember { mutableStateOf(event?.Event_Time ?: "") }
+    var eventLocation by remember { mutableStateOf(event?.Event_Location ?: "") }
+    var eventDescription by remember { mutableStateOf(event?.Event_Description ?: "") }
+    var eventImage by remember { mutableStateOf(event?.Event_Image ?: "") }
+    var eventNote by remember { mutableStateOf(event?.Event_Note ?: "") }
 
     // 2. State for Organizers (Starts with 1 empty organizer)
-    var organizers by remember { mutableStateOf(listOf(OrganizerInput("",""))) }
+    var organizers by remember { mutableStateOf(event?.Event_Organiser ?: listOf(OrganizerInput("",""))) }
 
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     val datePickerState = rememberDatePickerState()
     val timePickerState = rememberTimePickerState()
     val viewmodel : AddEventViewModel = viewModel()
+    
+    // If editing, try to parse coordinates
+    LaunchedEffect(event) {
+        event?.coordinates?.let { coords ->
+            val latLong = coords.split(",")
+            if (latLong.size == 2) {
+                val lat = latLong[0].trim().toDoubleOrNull()
+                val long = latLong[1].trim().toDoubleOrNull()
+                if (lat != null && long != null) {
+                    viewmodel.setPinnedLocation(GeoPoint(lat, long))
+                }
+            }
+        }
+        event?.coordinates_radius?.let { radius ->
+            viewmodel.updateRadius(radius)
+        }
+    }
+    
     val pinnedLocation = viewmodel.pinnedLocation.collectAsStateWithLifecycle().value
     val pinnedLocationRadius = viewmodel.pinnedLocationRadius.collectAsStateWithLifecycle().value
 
@@ -370,11 +393,18 @@ fun DetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Create New Event", fontWeight = FontWeight.Bold) },
+                title = { Text(if (event == null) "Create New Event" else "Edit Event", fontWeight = FontWeight.Bold) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+                ),
+                actions = {
+                    if (event != null && onDeleteClick != null) {
+                        IconButton(onClick = { showDeleteDialog = true }) {
+                            Icon(Icons.Default.Delete, contentDescription = "Delete Event", tint = MaterialTheme.colorScheme.error)
+                        }
+                    }
+                }
             )
         },
         bottomBar = {
@@ -390,7 +420,7 @@ fun DetailScreen(
                         onClick = {
                             onSaveClick(
                                 EventDataClass(
-                                    null,
+                                    event?.id,
                                     eventName.trim(),
                                     eventDate,
                                     eventTime,
@@ -419,9 +449,9 @@ fun DetailScreen(
                             Spacer(Modifier.width(12.dp))
                             Text("Saving...", fontWeight = FontWeight.Bold)
                         } else {
-                            Icon(Icons.Default.Event, contentDescription = null)
+                            Icon(if (event == null) Icons.Default.Event else Icons.Default.Edit, contentDescription = null)
                             Spacer(Modifier.width(8.dp))
-                            Text("Save Event", fontWeight = FontWeight.Bold)
+                            Text(if (event == null) "Save Event" else "Update Event", fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -656,6 +686,30 @@ fun DetailScreen(
             ) {
                 TimePicker(state = timePickerState)
             }
+        }
+        
+        if (showDeleteDialog) {
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = false },
+                title = { Text("Delete Event") },
+                text = { Text("Are you sure you want to delete this event? This action cannot be undone.") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            event?.id?.let { onDeleteClick?.invoke(it) }
+                            showDeleteDialog = false
+                        },
+                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                    ) {
+                        Text("Delete")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteDialog = false }) {
+                        Text("Cancel")
+                    }
+                }
+            )
         }
     }
 }

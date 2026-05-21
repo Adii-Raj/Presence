@@ -14,6 +14,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.application.presence.Screen.Components.CenteredBottomNavigation
 import com.application.presence.Screen.Components.EventDetailsSheetContent
@@ -34,7 +37,8 @@ fun HomeScreen(
     onScannerClick:()-> Unit,
     onAddClick:() -> Unit,
     onManageClick:() -> Unit,
-    onQrButtonClicked:(String) -> Unit
+    onQrButtonClicked:(String) -> Unit,
+    onEditClick: (EventDataClass) -> Unit
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -42,6 +46,19 @@ fun HomeScreen(
     var selectedEvent by remember { mutableStateOf<EventDataClass?>(null) }
     val userHasSpecialPermission = true
 
+    // Refresh events when the screen is resumed (e.g., navigating back from Edit)
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                eventViewmodel.getEvent(isRefresh = true)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
     val eventState = eventViewmodel.eventState.collectAsStateWithLifecycle().value
     val isRefreshing by eventViewmodel.isRefreshing.collectAsState()
@@ -80,7 +97,9 @@ fun HomeScreen(
                     val realEvents = eventState.data
 
                     if (realEvents.isEmpty()) {
-                        Text("No upcoming events found.")
+                        Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = androidx.compose.ui.Alignment.Center) {
+                            Text("No upcoming events found.")
+                        }
                     } else {
                         PullToRefreshBox(
                             isRefreshing = isRefreshing,
@@ -111,8 +130,7 @@ fun HomeScreen(
                                             showEventDetails = true
                                         },
                                         onEditClick = {
-                                            // TODO: Navigate to Edit Screen for this specific event
-                                            // e.g., navController.navigate("edit_event/${event.id}")
+                                            onEditClick(event)
                                         },
                                         onQrClick = {
                                             onQrButtonClicked(event.id!!)
@@ -126,9 +144,15 @@ fun HomeScreen(
                     }
                 }
                 is EventState.Error -> {
-                    Text("Error loading events.")
+                    Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = androidx.compose.ui.Alignment.Center) {
+                        Text("Error loading events.")
+                    }
                 }
-                else -> {CircularProgressIndicator()}
+                else -> {
+                    Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = androidx.compose.ui.Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                }
             }
         }
     }

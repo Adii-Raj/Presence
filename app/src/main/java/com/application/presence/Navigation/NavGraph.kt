@@ -33,6 +33,7 @@ import com.application.presence.Screen.ScannerScreen
 import com.application.presence.Screen.SplashScreen
 import com.application.presence.data.FastMyLocationProvider
 import com.application.presence.data.local.DeviceManager
+import com.application.presence.data.model.EventDataClass
 import com.application.presence.data.model.StudentAttendance
 import com.application.presence.data.state.EventInsertState
 import com.application.presence.data.state.EventState
@@ -50,6 +51,9 @@ import com.application.presence.viewmodel.QrGeneratorViewModel
 import com.application.presence.viewmodel.ScannerViewModel
 import com.application.presence.viewmodel.SplashViewModel
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import android.net.Uri
 
 @Composable
 fun NavGraph(){
@@ -135,11 +139,15 @@ fun NavGraph(){
                 authViewModel = authViewModel,
                 eventViewmodel = eventViewModel,
                 onScannerClick = {navController.navigate(scannerScreen)},
-                {navController.navigate(addEventScreen)},
-                {navController.navigate(attendanceScreen)},
-                {id ->
+                onAddClick = { navController.navigate(addEventScreen()) },
+                onManageClick = {navController.navigate(attendanceScreen)},
+                onQrButtonClicked = {id ->
                     eventViewModel.getUniqueAndSecret(id)
                     navController.navigate(qrGeneratorScreen(eventId = id))
+                },
+                onEditClick = { event ->
+                    val eventJson = Uri.encode(Json.encodeToString(event))
+                    navController.navigate(addEventScreen(eventJson = eventJson))
                 }
                 )
         }
@@ -162,13 +170,25 @@ fun NavGraph(){
             )
         }
 
-        composable<addEventScreen> {
+        composable<addEventScreen> { backStackEntry ->
+            val route = backStackEntry.toRoute<addEventScreen>()
+            val eventToEdit = route.eventJson?.let { Json.decodeFromString<EventDataClass>(Uri.decode(it)) }
+            
             val viewModel: AddEventViewModel = viewModel()
-            AddEventScreenUI(onSaveClick = {event ->
-                viewModel.insertProfile(event)
-            },
-                onNavigate = { navController.popBackStack()}
-                )
+            AddEventScreenUI(
+                eventToEdit = eventToEdit,
+                onSaveClick = { event ->
+                    if (eventToEdit == null) {
+                        viewModel.insertProfile(event)
+                    } else {
+                        viewModel.updateEvent(event)
+                    }
+                },
+                onDeleteClick = { id ->
+                    viewModel.deleteEvent(id)
+                },
+                onNavigate = { navController.popBackStack() }
+            )
         }
 
         composable<attendanceScreen> {
@@ -273,7 +293,7 @@ object homeScreen
 object scannerScreen
 
 @Serializable
-object addEventScreen
+data class addEventScreen(val eventJson: String? = null)
 
 @Serializable
 object attendanceScreen
